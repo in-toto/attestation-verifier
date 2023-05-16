@@ -176,7 +176,7 @@ func getMaterialsProductsAttributes(statement *attestationv1.Statement) ([]*atte
 			case string:
 				attributes[key] = value
 			case int:
-				attributes[key] = string(value)
+				attributes[key] = fmt.Sprint(value)
 			}
 		}
 		for k, v := range link.Environment.AsMap() {
@@ -185,14 +185,24 @@ func getMaterialsProductsAttributes(statement *attestationv1.Statement) ([]*atte
 			case string:
 				attributes[key] = value
 			case int:
-				attributes[key] = string(value)
+				attributes[key] = fmt.Sprint(value)
 			}
 		}
 
 		return link.Materials, statement.Subject, attributes, nil
-	}
+	default:
+		attributes := map[string]string{}
+		for k, v := range statement.Predicate.AsMap() {
+			switch value := v.(type) {
+			case string:
+				attributes[k] = value
+			case int:
+				attributes[k] = fmt.Sprint(value) // DRY
+			}
+		}
 
-	return nil, nil, nil, fmt.Errorf("unknown predicate type")
+		return statement.Subject, nil, attributes, nil
+	}
 }
 
 func applyMaterialRules(materials []*attestationv1.ResourceDescriptor, rules []string) error
