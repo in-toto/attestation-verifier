@@ -199,7 +199,84 @@ func applyMaterialRules(materials []*attestationv1.ResourceDescriptor, rules []s
 
 func applyProductRules(products []*attestationv1.ResourceDescriptor, rules []string) error
 
-func applyAttributeRules(attributes map[string]string, rules []string) error
+func applyAttributeRules(attributes map[string]string, rules []string) error {
+	for _, r := range rules {
+		rule, err := parseRule(r)
+		if err != nil {
+			return err
+		}
+		actual, ok := attributes[rule.l]
+		if !ok {
+			return fmt.Errorf("no claim available for rule %s", r)
+		}
+		switch rule.t {
+		case is:
+			expected, ok := rule.r.(string)
+			if !ok {
+				return fmt.Errorf("invalid rule %s", r)
+			}
+
+			if actual != expected {
+				return fmt.Errorf("verification failed for rule %s", r)
+			}
+		case oneOf:
+			expected, ok := rule.r.([]string)
+			if !ok {
+				return fmt.Errorf("invalid rule %s", r)
+			}
+
+			matched := false
+			for _, acceptedValue := range expected {
+				if actual == acceptedValue {
+					matched = true
+					break
+				}
+			}
+
+			if !matched {
+				return fmt.Errorf("verification failed for rule %s", r)
+			}
+		}
+	}
+
+	return nil
+}
+
+type ruleType int
+
+const (
+	is ruleType = iota
+	oneOf
+)
+
+type rule struct {
+	t ruleType
+	l string
+	r any
+}
+
+func parseRule(r string) (rule, error) {
+	split := strings.Split(r, " ")
+	switch split[1] {
+	case "is", "IS":
+		return rule{t: is, l: split[0], r: split[2]}, nil
+	case "oneof", "ONEOF", "oneOf":
+		rhs := split[2]
+		if !strings.HasPrefix(rhs, "[") || !strings.HasSuffix(rhs, "]") {
+			return rule{}, fmt.Errorf("invalid rule %s", r)
+		}
+
+		rhs = rhs[1 : len(rhs)-1]
+		components := strings.Split(rhs, ",")
+		r := []string{}
+		for _, c := range components {
+			r = append(r, strings.TrimSpace(c))
+		}
+
+		return rule{t: oneOf, l: split[0], r: components}, nil
+	}
+	return rule{}, fmt.Errorf("unknown rule type in rule %s", r)
+}
 
 func getAttestationsForSubject(patterns []string, attestations map[string]*attestationv1.Statement) []*attestationv1.Statement
 
