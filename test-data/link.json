@@ -1,0 +1,17 @@
+{
+	"predicate": {
+		"byproducts": {},
+		"environment": {},
+		"name": "link"
+	},
+	"predicateType": "https://in-toto.io/attestation/link/v0.3",
+	"subject": [
+		{
+			"digest": {
+				"sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+			},
+			"name": "foo"
+		}
+	],
+	"type": "https://in-toto.io/Statement/v1"
+}

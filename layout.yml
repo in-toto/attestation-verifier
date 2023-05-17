@@ -1,0 +1,13 @@
+expires: "2024-10-10T12:23:22Z"
+subjects:
+  - subject:
+      - "foo"
+    expectedPredicates:
+      - predicateType: "https://in-toto.io/attestation/link/v0.3"
+        expectedAttributes:
+          - rule: "size(command) == 0"
+            allowIfNoClaim: true
+      - predicateType: "https://in-toto.io/attestation/test-result/v0.1"
+        expectedAttributes:
+          - rule: "size(failedTests) == 0"
+          - rule: "result == 'PASSED'"

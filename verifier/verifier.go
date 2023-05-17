@@ -10,7 +10,7 @@ import (
 	attestationv1 "github.com/in-toto/attestation/go/v1"
 )
 
-func Verify(layout *Layout, attestations map[string]*attestationv1.Statement) error {
+func Verify(layout *Layout, attestations []*attestationv1.Statement) error {
 	expiry, err := time.Parse(time.RFC3339, layout.Expires)
 	if err != nil {
 		return err
@@ -24,107 +24,90 @@ func Verify(layout *Layout, attestations map[string]*attestationv1.Statement) er
 		return fmt.Errorf("empty layout, one of steps, subjects, and inspections must be specified")
 	}
 
-	for _, step := range layout.Steps {
-		stepAttestation, ok := attestations[step.Name]
-		if !ok {
-			return fmt.Errorf("no attestation found for step %s", step.Name)
-		}
+	// for _, step := range layout.Steps {
+	// 	stepAttestation, ok := attestations[step.Name]
+	// 	if !ok {
+	// 		return fmt.Errorf("no attestation found for step %s", step.Name)
+	// 	}
 
-		stepMaterials, stepProducts, stepAttributes, err := getMaterialsProductsAttributes(stepAttestation)
-		if err != nil {
-			return err
-		}
+	// 	stepMaterials, stepProducts, err := getMaterialsAndProducts(stepAttestation)
+	// 	if err != nil {
+	// 		return err
+	// 	}
 
-		for _, expectedPredicate := range step.ExpectedPredicates {
-			// TODO: only one predicate type?
-			if expectedPredicate.PredicateTypes[0] != stepAttestation.PredicateType {
-				return fmt.Errorf("expected predicate of type %s for step %s, received %s instead", expectedPredicate.PredicateTypes[0], step.Name, stepAttestation.PredicateType)
-			}
+	// 	for _, expectedPredicate := range step.ExpectedPredicates {
+	// 		// TODO: only one predicate type?
+	// 		if expectedPredicate.PredicateType != stepAttestation.PredicateType {
+	// 			return fmt.Errorf("expected predicate of type %s for step %s, received %s instead", expectedPredicate.PredicateType, step.Name, stepAttestation.PredicateType)
+	// 		}
 
-			if err := applyMaterialRules(stepMaterials, expectedPredicate.ExpectedMaterials); err != nil {
-				return err
-			}
+	// 		if err := applyMaterialRules(stepMaterials, expectedPredicate.ExpectedMaterials); err != nil {
+	// 			return err
+	// 		}
 
-			if err := applyProductRules(stepProducts, expectedPredicate.ExpectedProducts); err != nil {
-				return err
-			}
+	// 		if err := applyProductRules(stepProducts, expectedPredicate.ExpectedProducts); err != nil {
+	// 			return err
+	// 		}
 
-			if err := applyAttributeRules(stepAttributes, expectedPredicate.ExpectedAttributes); err != nil {
-				return err
-			}
-		}
-	}
+	// 		if err := applyAttributeRules(stepAttestation.PredicateType, stepAttestation.Predicate.AsMap(), expectedPredicate.ExpectedAttributes); err != nil {
+	// 			return err
+	// 		}
+	// 	}
+	// }
 
 	for _, subject := range layout.Subjects {
 		subjectAttestations := getAttestationsForSubject(subject.Subject, attestations)
 
+		fmt.Printf("Found %d attestations for subjects %s\n", len(subjectAttestations), subject.Subject)
+
 		for _, expectedPredicate := range subject.ExpectedPredicates {
-			matchedAttestations := getAttestationsForPredicateType(expectedPredicate.PredicateTypes, subjectAttestations)
+			matchedAttestations := getAttestationsForPredicateType(expectedPredicate.PredicateType, subjectAttestations)
+
+			fmt.Printf("Found %d attestations for predicate type %s\n", len(matchedAttestations), expectedPredicate.PredicateType)
 
 			if len(matchedAttestations) == 0 {
-				return fmt.Errorf("no attestation found for predicate %s for subject %s", strings.Join(expectedPredicate.PredicateTypes, ", "), strings.Join(subject.Subject, ", "))
+				return fmt.Errorf("no attestation found for predicate %s for subject %s", expectedPredicate.PredicateType, strings.Join(subject.Subject, ", "))
 			}
 
 			for _, attestation := range matchedAttestations {
-				_, _, attributes, err := getMaterialsProductsAttributes(attestation)
-				if err != nil {
-					return err
-				}
-				if err := applyAttributeRules(attributes, expectedPredicate.ExpectedAttributes); err != nil {
+				if err := applyAttributeRules(attestation.PredicateType, attestation.Predicate.AsMap(), expectedPredicate.ExpectedAttributes); err != nil {
 					return err
 				}
 			}
 		}
 	}
 
-	for _, inspection := range layout.Inspections {
-		// TODO executeInspection shouldn't perform the checks as well to be consistent, or we need helpers for steps, subjects
-		if err := executeInspection(inspection); err != nil {
-			return err
-		}
-	}
+	// for _, inspection := range layout.Inspections {
+	// 	// TODO executeInspection shouldn't perform the checks as well to be consistent, or we need helpers for steps, subjects
+	// 	if err := executeInspection(inspection); err != nil {
+	// 		return err
+	// 	}
+	// }
 
 	return nil
 }
 
-func getMaterialsProductsAttributes(statement *attestationv1.Statement) ([]*attestationv1.ResourceDescriptor, []*attestationv1.ResourceDescriptor, map[string]string, error) {
+func getMaterialsAndProducts(statement *attestationv1.Statement) ([]*attestationv1.ResourceDescriptor, []*attestationv1.ResourceDescriptor, error) {
 	switch statement.PredicateType {
 	case "https://in-toto.io/attestation/link/v0.3":
 		linkBytes, err := json.Marshal(statement.Predicate)
 		if err != nil {
-			return nil, nil, nil, err
+			return nil, nil, err
 		}
 
 		link := &linkPredicatev0.Link{}
 		if err := json.Unmarshal(linkBytes, link); err != nil {
-			return nil, nil, nil, err
+			return nil, nil, err
 		}
 
-		attributes := map[string]string{}
-		attributes["name"] = link.Name
-		attributes["command"] = strings.Join(link.Command, " ")
-		for k, v := range link.Byproducts.AsMap() {
-			key := fmt.Sprintf("byproducts.%s", k)
-			switch value := v.(type) {
-			case string:
-				attributes[key] = value
-			case int:
-				attributes[key] = fmt.Sprint(value)
-			}
-		}
-		for k, v := range link.Environment.AsMap() {
-			key := fmt.Sprintf("environment.%s", k)
-			switch value := v.(type) {
-			case string:
-				attributes[key] = value
-			case int:
-				attributes[key] = fmt.Sprint(value)
-			}
-		}
+		return link.Materials, statement.Subject, nil
 
-		return link.Materials, statement.Subject, attributes, nil
+	case "https://slsa.dev/provenance/v1":
+		// FIXME: no slsa proto yet for materials
+		return nil, statement.Subject, nil
+
 	default:
-		attributes := map[string]string{}
+		attributes := map[string]any{}
 		for k, v := range statement.Predicate.AsMap() {
 			switch value := v.(type) {
 			case string:
@@ -134,12 +117,44 @@ func getMaterialsProductsAttributes(statement *attestationv1.Statement) ([]*atte
 			}
 		}
 
-		return statement.Subject, nil, attributes, nil
+		return statement.Subject, nil, nil
 	}
 }
 
-func getAttestationsForSubject(patterns []string, attestations map[string]*attestationv1.Statement) []*attestationv1.Statement
+func getAttestationsForSubject(patterns []string, attestations []*attestationv1.Statement) []*attestationv1.Statement {
+	matchedAttestations := []*attestationv1.Statement{}
+	for _, attestation := range attestations {
+		matched := false
+		for _, subject := range attestation.Subject {
+			for _, pattern := range patterns {
+				if subject.Name == pattern {
+					matched = true
+					break
+				}
+			}
+			if matched {
+				break
+			}
+		}
+		if matched {
+			attestation := attestation
+			matchedAttestations = append(matchedAttestations, attestation)
+		}
+	}
 
-func getAttestationsForPredicateType(predicateTypes []string, attestations []*attestationv1.Statement) []*attestationv1.Statement
+	return matchedAttestations
+}
 
-func executeInspection(inspection *Inspection) error
+func getAttestationsForPredicateType(predicateType string, attestations []*attestationv1.Statement) []*attestationv1.Statement {
+	matchedAttestations := []*attestationv1.Statement{}
+	for _, attestation := range attestations {
+		if attestation.PredicateType == predicateType {
+			attestation := attestation
+			matchedAttestations = append(matchedAttestations, attestation)
+		}
+	}
+
+	return matchedAttestations
+}
+
+// func executeInspection(inspection *Inspection) error

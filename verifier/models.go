@@ -12,13 +12,18 @@ type Functionary struct {
 	PublicKey string `yaml:"publicKey"`
 }
 
+type Constraint struct {
+	Rule           string `yaml:"rule"`
+	AllowIfNoClaim bool   `yaml:"allowIfNoClaim"`
+}
+
 type ExpectedStepPredicates struct {
-	PredicateTypes     []string `yaml:"predicateTypes"`
-	ExpectedMaterials  []string `yaml:"expectedMaterials"`
-	ExpectedProducts   []string `yaml:"expectedProducts"`
-	ExpectedAttributes []string `yaml:"expectedAttributes"`
-	Functionaries      []string `yaml:"functionaries"`
-	Threshold          int      `yaml:"threshold"`
+	PredicateType      string       `yaml:"predicateType"`
+	ExpectedMaterials  []string     `yaml:"expectedMaterials"`
+	ExpectedProducts   []string     `yaml:"expectedProducts"`
+	ExpectedAttributes []Constraint `yaml:"expectedAttributes"`
+	Functionaries      []string     `yaml:"functionaries"`
+	Threshold          int          `yaml:"threshold"`
 }
 
 type Step struct {
@@ -28,10 +33,10 @@ type Step struct {
 }
 
 type ExpectedSubjectPredicates struct {
-	PredicateTypes     []string `yaml:"predicateTypes"`
-	ExpectedAttributes []string `yaml:"expectedAttributes"`
-	Functionaries      []string `yaml:"functionaries"`
-	Threshold          int      `yaml:"threshold"`
+	PredicateType      string       `yaml:"predicateType"`
+	ExpectedAttributes []Constraint `yaml:"expectedAttributes"`
+	Functionaries      []string     `yaml:"functionaries"`
+	Threshold          int          `yaml:"threshold"`
 }
 
 type Subject struct {
@@ -40,12 +45,12 @@ type Subject struct {
 }
 
 type Inspection struct {
-	Name               string   `yaml:"name"`
-	Command            string   `yaml:"command"`
-	Predicates         []string `yaml:"predicates"`
-	ExpectedMaterials  []string `yaml:"expectedMaterials"`
-	ExpectedProducts   []string `yaml:"expectedProducts"`
-	ExpectedAttributes []string `yaml:"expectedAttributes"`
+	Name               string       `yaml:"name"`
+	Command            string       `yaml:"command"`
+	Predicates         []string     `yaml:"predicates"`
+	ExpectedMaterials  []string     `yaml:"expectedMaterials"`
+	ExpectedProducts   []string     `yaml:"expectedProducts"`
+	ExpectedAttributes []Constraint `yaml:"expectedAttributes"`
 }
 
 type Layout struct {

@@ -1,0 +1,29 @@
+{
+	"_type": "https://in-toto.io/Statement/v1",
+	"subject": [
+		{
+			"name": "foo",
+			"digest": {
+				"sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+			}
+		}
+	],
+	"predicateType": "https://in-toto.io/attestation/test-result/v0.1",
+	"predicate": {
+		"result": "PASSED",
+		"configuration": [
+			{
+				"name": ".github/workflows/ci.yml",
+				"digest": {
+					"sha256": "abcdef"
+				}
+			}
+		],
+		"url": "https://github.com/in-toto/in-toto/actions/824898",
+		"passedTests": [
+			"test1"
+		],
+		"warnedTests": [],
+		"failedTests": []
+	}
+}
