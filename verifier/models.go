@@ -19,7 +19,6 @@ type Constraint struct {
 
 type ExpectedStepPredicates struct {
 	PredicateType      string       `yaml:"predicateType"`
-	ExpectedMaterials  []string     `yaml:"expectedMaterials"`
 	ExpectedProducts   []string     `yaml:"expectedProducts"`
 	ExpectedAttributes []Constraint `yaml:"expectedAttributes"`
 	Functionaries      []string     `yaml:"functionaries"`
@@ -29,6 +28,7 @@ type ExpectedStepPredicates struct {
 type Step struct {
 	Name               string                   `yaml:"name"`
 	Command            string                   `yaml:"command"`
+	ExpectedMaterials  []string                 `yaml:"expectedMaterials"`
 	ExpectedPredicates []ExpectedStepPredicates `yaml:"expectedPredicates"`
 }
 

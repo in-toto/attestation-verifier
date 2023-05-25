@@ -1,12 +1,16 @@
 package cmd
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/adityasaky/ite-10-verifier/verifier"
 	attestationv1 "github.com/in-toto/attestation/go/v1"
+	"github.com/secure-systems-lab/go-securesystemslib/cjson"
+	"github.com/secure-systems-lab/go-securesystemslib/dsse"
 	"github.com/spf13/cobra"
 )
 
@@ -59,9 +63,10 @@ func verify(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	attestations := []*attestationv1.Statement{}
+	attestations := map[string]*dsse.Envelope{}
 	for _, e := range dirEntries {
-		ab, err := os.ReadFile(filepath.Join(attestationsDir, e.Name()))
+		name := e.Name()
+		ab, err := os.ReadFile(filepath.Join(attestationsDir, name))
 		if err != nil {
 			return err
 		}
@@ -69,7 +74,16 @@ func verify(cmd *cobra.Command, args []string) error {
 		if err := json.Unmarshal(ab, attestation); err != nil {
 			return err
 		}
-		attestations = append(attestations, attestation)
+		encodedBytes, err := cjson.EncodeCanonical(attestation)
+		if err != nil {
+			return err
+		}
+		envelope := &dsse.Envelope{
+			Payload:     base64.StdEncoding.EncodeToString(encodedBytes),
+			PayloadType: "application/vnd.in-toto+json",
+		}
+
+		attestations[strings.TrimSuffix(name, ".json")] = envelope
 	}
 
 	return verifier.Verify(layout, attestations)
