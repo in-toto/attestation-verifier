@@ -10,8 +10,6 @@ github.com/google/cel-go v0.15.2 h1:jX8b/sSNoE1JBaxLAVDb+rTuEk9F7+Yd8UVKWjoz7SU=
 github.com/google/cel-go v0.15.2/go.mod h1:YzWEoI07MC/a/wj9in8GeVatqfypkldgBlwXh9bCwqY=
 github.com/google/go-cmp v0.5.5/go.mod h1:v8dTdLbMG2kIc/vJvl+f65V22dbkXbowE6jgT/gNBxE=
 github.com/google/go-cmp v0.5.8 h1:e6P7q2lk1O+qJJb4BtCQXlK8vWEO8V1ZeuEdJNOqZyg=
-github.com/in-toto/attestation v0.1.1-0.20230512152822-060338ad0a3a h1:tXCJH7kN+0dnTSWeevyK+JlKNtVsA/ewZXG4SiHe9Xc=
-github.com/in-toto/attestation v0.1.1-0.20230512152822-060338ad0a3a/go.mod h1:LMUvPNze9Vh+7GAszzmcvqJSfZd3YXF0zm3uR8aoFhM=
 github.com/in-toto/attestation v0.1.1-0.20230619131757-2f78724ec855 h1:2kP14wtXuOGWP1vT+cUTL9xno2OEBKMtBYVVAJlkUfQ=
 github.com/in-toto/attestation v0.1.1-0.20230619131757-2f78724ec855/go.mod h1:rJBpzIdRQC8HURnCNTSctNnCNbWAEzv4Thtqzwqkd00=
 github.com/inconshreveable/mousetrap v1.1.0 h1:wN+x4NVGpMsO7ErUn/mUI3vEoE6Jt13X2s0bqwp9tc8=
@@ -32,7 +30,7 @@ github.com/stoewer/go-strcase v1.2.0/go.mod h1:IBiWB2sKIp3wVVQ3Y035++gc+knqhUQag
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
 github.com/stretchr/testify v1.5.1/go.mod h1:5W2xD1RspED5o8YsWQXVCued0rvSQ+mT+I5cxcmMvtA=
 github.com/stretchr/testify v1.7.0/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
-github.com/stretchr/testify v1.8.2 h1:+h33VjcLVPDHtOdpUCuF+7gSuG3yGIftsP1YvFihtJ8=
+github.com/stretchr/testify v1.8.4 h1:CcVxjf3Q8PM0mHUKJCdn+eZZtm5yQwehR5yeSVQQcUk=
 golang.org/x/crypto v0.8.0 h1:pd9TJtTueMTVQXzk8E2XESSMQDj/U7OUu0PqJqPXQjQ=
 golang.org/x/crypto v0.8.0/go.mod h1:mRqEX+O9/h5TFCrQhkgjo2yKi0yYA+9ecGkdQoHrywE=
 golang.org/x/exp v0.0.0-20220722155223-a9213eeb770e h1:+WEEuIdZHnUeJJmEUjyYC2gfUMj69yZXw17EnHg/otA=
