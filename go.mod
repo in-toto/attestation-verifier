@@ -1,4 +1,4 @@
-module github.com/adityasaky/ite-10-verifier
+module github.com/adityasaky/in-toto-attestation-verifier
 
 go 1.20
 

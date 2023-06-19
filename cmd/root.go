@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/adityasaky/ite-10-verifier/verifier"
+	"github.com/adityasaky/in-toto-attestation-verifier/verifier"
 	"github.com/secure-systems-lab/go-securesystemslib/dsse"
 	"github.com/spf13/cobra"
 )
