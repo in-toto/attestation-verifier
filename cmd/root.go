@@ -1,15 +1,12 @@
 package cmd
 
 import (
-	"encoding/base64"
 	"encoding/json"
 	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/adityasaky/ite-10-verifier/verifier"
-	attestationv1 "github.com/in-toto/attestation/go/v1"
-	"github.com/secure-systems-lab/go-securesystemslib/cjson"
 	"github.com/secure-systems-lab/go-securesystemslib/dsse"
 	"github.com/spf13/cobra"
 )
@@ -70,17 +67,21 @@ func verify(cmd *cobra.Command, args []string) error {
 		if err != nil {
 			return err
 		}
-		attestation := &attestationv1.Statement{}
-		if err := json.Unmarshal(ab, attestation); err != nil {
+		// attestation := &attestationv1.Statement{}
+		// if err := json.Unmarshal(ab, attestation); err != nil {
+		// 	return err
+		// }
+		// encodedBytes, err := cjson.EncodeCanonical(attestation)
+		// if err != nil {
+		// 	return err
+		// }
+		// envelope := &dsse.Envelope{
+		// 	Payload:     base64.StdEncoding.EncodeToString(encodedBytes),
+		// 	PayloadType: "application/vnd.in-toto+json",
+		// }
+		envelope := &dsse.Envelope{}
+		if err := json.Unmarshal(ab, envelope); err != nil {
 			return err
-		}
-		encodedBytes, err := cjson.EncodeCanonical(attestation)
-		if err != nil {
-			return err
-		}
-		envelope := &dsse.Envelope{
-			Payload:     base64.StdEncoding.EncodeToString(encodedBytes),
-			PayloadType: "application/vnd.in-toto+json",
 		}
 
 		attestations[strings.TrimSuffix(name, ".json")] = envelope

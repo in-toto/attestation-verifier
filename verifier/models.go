@@ -6,10 +6,17 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+// copied from go-sslib to use yaml tags
 type Functionary struct {
-	Type      string `yaml:"type"`
-	Scheme    string `yaml:"scheme"`
-	PublicKey string `yaml:"publicKey"`
+	KeyIDHashAlgorithms []string `yaml:"keyIDHashAlgorithms"`
+	KeyType             string   `yaml:"keyType"`
+	KeyVal              KeyVal   `yaml:"keyVal"`
+	Scheme              string   `yaml:"scheme"`
+	KeyID               string   `yaml:"keyID"`
+}
+
+type KeyVal struct {
+	Public string `yaml:"public"`
 }
 
 type Constraint struct {
@@ -73,4 +80,9 @@ func LoadLayout(path string) (*Layout, error) {
 	}
 
 	return layout, nil
+}
+
+type AttestationIdentifier struct {
+	PredicateType string
+	Functionary   string
 }

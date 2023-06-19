@@ -1,4 +1,14 @@
 expires: "2024-10-10T12:23:22Z"
+functionaries:
+  fe1c6281c5ff13e35286cc67e5a1fb3e6575b840a6c39ca4267d3805eb17288a:
+    keyType: "ed25519"
+    scheme: "ed25519"
+    keyIDHashAlgorithms:
+      - "sha256"
+      - "sha512"
+    keyVal:
+      public: "7345b83c121ea0d9ffc3b38d69958718b8435e8cb0552f889d695586693e1b89"
+    keyID: "fe1c6281c5ff13e35286cc67e5a1fb3e6575b840a6c39ca4267d3805eb17288a"
 steps:
   - name: "clone"
     expectedPredicates:
@@ -6,9 +16,13 @@ steps:
         expectedAttributes:
           - rule: "size(command) == 0"
             allowIfNoClaim: true
+        functionaries:
+          - "fe1c6281c5ff13e35286cc67e5a1fb3e6575b840a6c39ca4267d3805eb17288a"
   - name: "test"
     expectedPredicates:
       - predicateType: "https://in-toto.io/attestation/test-result/v0.1"
         expectedAttributes:
           - rule: "size(failedTests) == 0"
           - rule: "result == 'PASSED'"
+        functionaries:
+          - "fe1c6281c5ff13e35286cc67e5a1fb3e6575b840a6c39ca4267d3805eb17288a"

@@ -1,15 +1,20 @@
 package verifier
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 
 	"github.com/google/cel-go/cel"
+	linkPredicatev0 "github.com/in-toto/attestation/go/predicates/link/v0"
+	provenancePredicatev1 "github.com/in-toto/attestation/go/predicates/provenance/v1"
+	attestationv1 "github.com/in-toto/attestation/go/v1"
+	log "github.com/sirupsen/logrus"
 )
 
-// func applyMaterialRules(materials []*attestationv1.ResourceDescriptor, rules []string) error
+// func applyMaterialRules(statement *attestationv1.Statement, rules []string, claims map[string]map[AttestationIdentifier]*attestationv1.Statement) error
 
-// func applyProductRules(products []*attestationv1.ResourceDescriptor, rules []string) error
+// func applyProductRules(statement *attestationv1.Statement, rules []string, claims map[string]map[AttestationIdentifier]*attestationv1.Statement) error
 
 func applyAttributeRules(predicateType string, predicate map[string]any, rules []Constraint) error {
 	env, err := getCELEnvForPredicateType(predicateType)
@@ -18,7 +23,7 @@ func applyAttributeRules(predicateType string, predicate map[string]any, rules [
 	}
 
 	for _, r := range rules {
-		fmt.Println("Evaluating rule", r.Rule)
+		log.Infof("Evaluating rule %s", r.Rule)
 		ast, issues := env.Compile(r.Rule)
 		if issues != nil && issues.Err() != nil {
 			return issues.Err()
@@ -43,6 +48,39 @@ func applyAttributeRules(predicateType string, predicate map[string]any, rules [
 	}
 
 	return nil
+}
+
+func getMaterialsAndProducts(statement *attestationv1.Statement) ([]*attestationv1.ResourceDescriptor, []*attestationv1.ResourceDescriptor, error) {
+	switch statement.PredicateType {
+	case "https://in-toto.io/attestation/link/v0.3":
+		linkBytes, err := json.Marshal(statement.Predicate)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		link := &linkPredicatev0.Link{}
+		if err := json.Unmarshal(linkBytes, link); err != nil {
+			return nil, nil, err
+		}
+
+		return link.Materials, statement.Subject, nil
+
+	case "https://slsa.dev/provenance/v1":
+		provenanceBytes, err := json.Marshal(statement.Predicate)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		provenance := &provenancePredicatev1.Provenance{}
+		if err := json.Unmarshal(provenanceBytes, provenance); err != nil {
+			return nil, nil, err
+		}
+
+		return provenance.BuildDefinition.ResolvedDependencies, statement.Subject, nil
+
+	default:
+		return statement.Subject, nil, nil
+	}
 }
 
 func getCELEnvForPredicateType(predicateType string) (*cel.Env, error) {
