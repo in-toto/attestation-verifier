@@ -13,6 +13,7 @@ import (
 	attestationv1 "github.com/in-toto/attestation/go/v1"
 	"github.com/in-toto/in-toto-golang/in_toto"
 	log "github.com/sirupsen/logrus"
+	"google.golang.org/protobuf/encoding/protojson"
 )
 
 func applyArtifactRules(statement *attestationv1.Statement, materialRules []string, productRules []string, claims map[string]map[AttestationIdentifier]*attestationv1.Statement) error {
@@ -159,7 +160,7 @@ func getMaterialsAndProducts(statement *attestationv1.Statement) ([]*attestation
 		}
 
 		link := &linkPredicatev0.Link{}
-		if err := json.Unmarshal(linkBytes, link); err != nil {
+		if err := protojson.Unmarshal(linkBytes, link); err != nil {
 			return nil, nil, err
 		}
 
@@ -172,7 +173,7 @@ func getMaterialsAndProducts(statement *attestationv1.Statement) ([]*attestation
 		}
 
 		provenance := &provenancePredicatev1.Provenance{}
-		if err := json.Unmarshal(provenanceBytes, provenance); err != nil {
+		if err := protojson.Unmarshal(provenanceBytes, provenance); err != nil {
 			return nil, nil, err
 		}
 
