@@ -87,15 +87,10 @@ func Verify(layout *Layout, attestations map[string]*dsse.Envelope) error {
 				log.Infof("Verifying claim for step %s of type %s by %s", step.Name, expectedPredicate.PredicateType, functionary)
 				failed := false
 
-				// if err := applyMaterialRules(statement, step.ExpectedMaterials, claims); err != nil {
-				// 	failed = true
-				// 	failedChecks = append(failedChecks, fmt.Errorf("for step %s, claim by %s failed material rules: %w", step.Name, functionary, err))
-				// }
-
-				// if err := applyProductRules(statement, expectedPredicate.ExpectedProducts, claims); err != nil {
-				// 	failed = true
-				// 	failedChecks = append(failedChecks, fmt.Errorf("for step %s, claim by %s failed product rules: %w", step.Name, functionary, err))
-				// }
+				if err := applyArtifactRules(statement, step.ExpectedMaterials, expectedPredicate.ExpectedProducts, claims); err != nil {
+					failed = true
+					failedChecks = append(failedChecks, fmt.Errorf("for step %s, claim by %s failed artifact rules: %w", step.Name, functionary, err))
+				}
 
 				if err := applyAttributeRules(expectedPredicate.PredicateType, statement.Predicate.AsMap(), expectedPredicate.ExpectedAttributes); err != nil {
 					failed = true
@@ -113,6 +108,8 @@ func Verify(layout *Layout, attestations map[string]*dsse.Envelope) error {
 			}
 		}
 	}
+
+	log.Info("Verification successful!")
 
 	return nil
 }

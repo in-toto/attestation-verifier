@@ -11,14 +11,22 @@ functionaries:
     keyID: "fe1c6281c5ff13e35286cc67e5a1fb3e6575b840a6c39ca4267d3805eb17288a"
 steps:
   - name: "clone"
+    expectedMaterials:
+      - "DISALLOW *"
     expectedPredicates:
       - predicateType: "https://in-toto.io/attestation/link/v0.3"
+        expectedProducts:
+          - "CREATE foo"
+          - "DISALLOW *"
         expectedAttributes:
           - rule: "size(command) == 0"
             allowIfNoClaim: true
         functionaries:
           - "fe1c6281c5ff13e35286cc67e5a1fb3e6575b840a6c39ca4267d3805eb17288a"
   - name: "test"
+    expectedMaterials:
+      - "MATCH foo WITH products FROM clone"
+      - "DISALLOW *"
     expectedPredicates:
       - predicateType: "https://in-toto.io/attestation/test-result/v0.1"
         expectedAttributes:
