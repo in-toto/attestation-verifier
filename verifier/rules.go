@@ -292,6 +292,8 @@ func getDestinationArtifacts(dstClaims map[AttestationIdentifier]*attestationv1.
 }
 
 func getCELEnvForPredicateType(predicateType string) (*cel.Env, error) {
+	// FIXME: maybe we should take over https://github.com/google/cel-go/pull/219
+
 	switch predicateType {
 	case "https://in-toto.io/attestation/link/v0.3":
 		return cel.NewEnv(
@@ -308,6 +310,11 @@ func getCELEnvForPredicateType(predicateType string) (*cel.Env, error) {
 			cel.Variable("passedTests", cel.ListType(cel.StringType)),
 			cel.Variable("warnedTests", cel.ListType(cel.StringType)),
 			cel.Variable("failedTests", cel.ListType(cel.StringType)),
+		)
+	case "https://slsa.dev/provenance/v1":
+		return cel.NewEnv(
+			cel.Variable("buildDefinition", cel.ObjectType("in_toto_attestation.predicates.provenance.v1.BuildDefinition")),
+			cel.Variable("runDetails", cel.ObjectType("in_toto_attestation.predicates.provenance.v1.RunDetails")),
 		)
 	}
 
