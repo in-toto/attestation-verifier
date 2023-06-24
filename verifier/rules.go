@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/google/cel-go/cel"
+	"github.com/google/cel-go/checker/decls"
 	linkPredicatev0 "github.com/in-toto/attestation/go/predicates/link/v0"
 	provenancePredicatev1 "github.com/in-toto/attestation/go/predicates/provenance/v1"
 	attestationv1 "github.com/in-toto/attestation/go/v1"
@@ -135,16 +136,21 @@ func applyAttributeRules(predicateType string, predicate map[string]any, rules [
 			return err
 		}
 
-		out, _, err := prog.Eval(predicate)
+		out, details, err := prog.Eval(predicate)
 		if err != nil {
 			if strings.Contains(err.Error(), "no such attribute") && r.AllowIfNoClaim {
 				continue
 			}
+			log.Info(details)
 		}
-		if result, ok := out.Value().(bool); !ok {
-			return fmt.Errorf("unexpected result from CEL")
-		} else if !result {
-			return fmt.Errorf("verification failed for rule '%s'", r.Rule)
+		switch result := out.Value().(type) {
+		case bool:
+			if !result {
+				return fmt.Errorf("verification failed for rule '%s'", r.Rule)
+			}
+		case error:
+			log.Info(result)
+			return fmt.Errorf("CEL error: %w", result)
 		}
 	}
 
@@ -313,11 +319,45 @@ func getCELEnvForPredicateType(predicateType string) (*cel.Env, error) {
 			cel.Variable("failedTests", cel.ListType(cel.StringType)),
 		)
 	case "https://slsa.dev/provenance/v1":
-		return cel.NewEnv(
-			cel.Variable("buildDefinition", cel.ObjectType("in_toto_attestation.predicates.provenance.v1.BuildDefinition")),
-			cel.Variable("runDetails", cel.ObjectType("in_toto_attestation.predicates.provenance.v1.RunDetails")),
+		// debugTypeEnv(&provenancePredicatev1.Provenance{})
+		env, err := cel.NewEnv(
+			cel.Types(&provenancePredicatev1.BuildDefinition{}),
+			cel.Types(&provenancePredicatev1.RunDetails{}),
+			cel.Declarations(
+				decls.NewVar("buildDefinition", decls.NewObjectType("in_toto_attestation.predicates.provenance.v1.BuildDefinition")),
+				decls.NewVar("runDetails", decls.NewObjectType("in_toto_attestation.predicates.provenance.v1.RunDetails")),
+			),
 		)
+
+		return env, err
 	}
 
 	return nil, fmt.Errorf("unknown predicate type")
 }
+
+// func debugTypeEnv(t any) {
+// 	log.Info("Debugging...")
+// 	env, _ := cel.NewEnv()
+// 	db := pb.NewDb()
+// 	reg := env.TypeProvider().(ref.TypeRegistry)
+// 	switch v := t.(type) {
+// 	case proto.Message:
+// 		fdMap := pb.CollectFileDescriptorSet(v)
+// 		for path, fd := range fdMap {
+// 			log.Infof("Found %s", path)
+// 			err := reg.RegisterDescriptor(fd)
+// 			if err != nil {
+// 				log.Info(err)
+// 			}
+// 			desc, err := db.RegisterDescriptor(fd)
+// 			if err != nil {
+// 				log.Info(err)
+// 			}
+// 			for _, name := range desc.GetTypeNames() {
+// 				log.Info(name)
+// 				reg.RegisterType(types.NewObjectType(name))
+// 			}
+// 		}
+// 	}
+// 	log.Info("Type Provider", env.TypeProvider())
+// }

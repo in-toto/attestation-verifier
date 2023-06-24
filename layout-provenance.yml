@@ -19,6 +19,7 @@ steps:
           - "CREATE foo"
           - "DISALLOW *"
         expectedAttributes:
+          # - rule: "buildDefinition.build_type == 'https://slsa-framework.github.io/github-actions-buildtypes/workflow/v1'"
           - rule: "buildDefinition.buildType == 'https://slsa-framework.github.io/github-actions-buildtypes/workflow/v1'"
             allowIfNoClaim: true
         functionaries:
