@@ -19,8 +19,9 @@ steps:
           - "CREATE foo"
           - "DISALLOW *"
         expectedAttributes:
-          - rule: "size(predicate.command) == 0"
+          - rule: "predicate.command == ['git', 'clone', 'https://example.com/foo.git']"
             allowIfNoClaim: true
+            warn: true
         functionaries:
           - "fe1c6281c5ff13e35286cc67e5a1fb3e6575b840a6c39ca4267d3805eb17288a"
   - name: "test"
@@ -33,5 +34,21 @@ steps:
           - rule: "size(predicate.failedTests) == 0"
           - rule: "predicate.result == 'PASSED'"
           - rule: "size(subject) != 0"
+        functionaries:
+          - "fe1c6281c5ff13e35286cc67e5a1fb3e6575b840a6c39ca4267d3805eb17288a"
+  - name: "build"
+    expectedMaterials:
+      - "MATCH foo WITH products FROM clone"
+      - "DISALLOW *"
+    expectedPredicates:
+      - predicateType: "https://slsa.dev/provenance/v1"
+        expectedProducts:
+          - "CREATE bin/foo"
+          - "DISALLOW *"
+        expectedAttributes:
+          - rule: "predicate.buildDefinition.buildType == 'https://slsa-framework.github.io/github-actions-buildtypes/workflow/v1'"
+            allowIfNoClaim: false
+          - rule: "predicate.runDetails.builder.id == 'https://github.com/slsa-framework/slsa-github-generator/.github/workflows/builder_go_slsa3.yml@refs/tags/v1.7.0'"
+            allowIfNoClaim: false
         functionaries:
           - "fe1c6281c5ff13e35286cc67e5a1fb3e6575b840a6c39ca4267d3805eb17288a"

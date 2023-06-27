@@ -1,10 +1,5 @@
 {
-	"predicate": {
-		"byproducts": {},
-		"environment": {},
-		"name": "link"
-	},
-	"predicateType": "https://in-toto.io/attestation/link/v0.3",
+	"type": "https://in-toto.io/Statement/v1",
 	"subject": [
 		{
 			"digest": {
@@ -13,5 +8,11 @@
 			"name": "foo"
 		}
 	],
-	"type": "https://in-toto.io/Statement/v1"
+	"predicateType": "https://in-toto.io/attestation/link/v0.3",
+	"predicate": {
+		"name": "clone",
+		"command": ["git", "clone", "https://example.com/foo.git"],
+		"byproducts": {},
+		"environment": {}
+	}
 }

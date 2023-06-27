@@ -141,7 +141,10 @@ func applyAttributeRules(env *cel.Env, input interpreter.Activation, rules []Con
 		switch result := out.Value().(type) {
 		case bool:
 			if !result {
-				return fmt.Errorf("verification failed for rule '%s'", r.Rule)
+				if !r.Warn {
+					return fmt.Errorf("verification failed for rule '%s'", r.Rule)
+				}
+				log.Warnf("Rule %s failed.", r.Rule)
 			}
 		case error:
 			log.Info(result)

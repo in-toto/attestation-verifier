@@ -17,7 +17,7 @@ import (
 )
 
 func Verify(layout *Layout, attestations map[string]*dsse.Envelope) error {
-	log.Info("Verifying expiry...")
+	log.Info("Verifying layout expiry...")
 	expiry, err := time.Parse(time.RFC3339, layout.Expires)
 	if err != nil {
 		return err
@@ -92,7 +92,7 @@ func Verify(layout *Layout, attestations map[string]*dsse.Envelope) error {
 			failedChecks := []error{}
 			acceptedPredicates := 0
 			for functionary, statement := range matchedPredicates {
-				log.Infof("Verifying claim for step %s of type %s by %s", step.Name, expectedPredicate.PredicateType, functionary)
+				log.Infof("Verifying claim for step '%s' of type '%s' by '%s'...", step.Name, expectedPredicate.PredicateType, functionary)
 				failed := false
 
 				if err := applyArtifactRules(statement, step.ExpectedMaterials, expectedPredicate.ExpectedProducts, claims); err != nil {
@@ -114,6 +114,7 @@ func Verify(layout *Layout, attestations map[string]*dsse.Envelope) error {
 					log.Infof("Claim for step %s of type %s by %s failed.", step.Name, expectedPredicate.PredicateType, functionary)
 				} else {
 					acceptedPredicates += 1
+					log.Info("Done.")
 				}
 			}
 			if acceptedPredicates < expectedPredicate.Threshold {

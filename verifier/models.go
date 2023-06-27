@@ -22,6 +22,7 @@ type KeyVal struct {
 type Constraint struct {
 	Rule           string `yaml:"rule"`
 	AllowIfNoClaim bool   `yaml:"allowIfNoClaim"`
+	Warn           bool   `yaml:"warn"`
 }
 
 type ExpectedStepPredicates struct {
