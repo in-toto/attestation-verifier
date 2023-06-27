@@ -1,0 +1,30 @@
+{
+	"_type": "https://in-toto.io/Statement/v1",
+	"subject": [
+		{
+			"digest": {
+				"sha256": "58eaf5a78d580f5dbd49d31a5b733094169b31bfdf49055b74bcac2877d8f58c"
+			},
+			"name": "bin/foo"
+		}
+	],
+	"predicateType": "https://slsa.dev/provenance/v1",
+	"predicate": {
+		"buildDefinition": {
+			"buildType": "https://slsa-framework.github.io/github-actions-buildtypes/workflow/v1",
+			"resolvedDependencies": [
+				{
+					"digest": {
+						"sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+					},
+					"name": "foo"
+				}
+			]
+		},
+		"runDetails": {
+			"builder": {
+				"id": "https://github.com/slsa-framework/slsa-github-generator/.github/workflows/builder_go_slsa3.yml@refs/tags/v1.7.0"
+			}
+		}
+	}
+}
