@@ -9,15 +9,11 @@ import (
 
 	"github.com/google/cel-go/cel"
 	"github.com/google/cel-go/interpreter"
-	linkPredicatev0 "github.com/in-toto/attestation/go/predicates/link/v0"
-	provenancePredicatev1 "github.com/in-toto/attestation/go/predicates/provenance/v1"
-	testResultPredicatev0 "github.com/in-toto/attestation/go/predicates/test_result/v0"
 	attestationv1 "github.com/in-toto/attestation/go/v1"
 	"github.com/secure-systems-lab/go-securesystemslib/dsse"
 	"github.com/secure-systems-lab/go-securesystemslib/signerverifier"
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/protobuf/encoding/protojson"
-	"google.golang.org/protobuf/proto"
 )
 
 func Verify(layout *Layout, attestations map[string]*dsse.Envelope) error {
@@ -185,42 +181,6 @@ func getPredicates(statements map[AttestationIdentifier]*attestationv1.Statement
 	}
 
 	return matchedPredicates
-}
-
-func getPredicateMessage(statement *attestationv1.Statement) (map[string]proto.Message, error) {
-	predicateBytes, err := protojson.Marshal(statement.Predicate)
-	if err != nil {
-		return nil, err
-	}
-
-	var predicateMsg proto.Message
-	switch statement.PredicateType {
-	case "https://in-toto.io/attestation/link/v0.3":
-		link := &linkPredicatev0.Link{}
-		if err := protojson.Unmarshal(predicateBytes, link); err != nil {
-			return nil, err
-		}
-		predicateMsg = link
-
-	case "https://slsa.dev/provenance/v1":
-		provenance := &provenancePredicatev1.Provenance{}
-		if err := protojson.Unmarshal(predicateBytes, provenance); err != nil {
-			return nil, err
-		}
-		predicateMsg = provenance
-
-	case "https://in-toto.io/attestation/test-result/v0.1":
-		testResult := &testResultPredicatev0.TestResult{}
-		if err := protojson.Unmarshal(predicateBytes, testResult); err != nil {
-			return nil, err
-		}
-		predicateMsg = testResult
-
-	default:
-		return nil, fmt.Errorf("unknown predicate type")
-	}
-
-	return map[string]proto.Message{"predicate": predicateMsg}, nil
 }
 
 func getCELEnv() (*cel.Env, error) {
