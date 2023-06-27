@@ -19,8 +19,7 @@ steps:
           - "CREATE foo"
           - "DISALLOW *"
         expectedAttributes:
-          # - rule: "buildDefinition.build_type == 'https://slsa-framework.github.io/github-actions-buildtypes/workflow/v1'"
-          - rule: "buildDefinition.buildType == 'https://slsa-framework.github.io/github-actions-buildtypes/workflow/v1'"
+          - rule: "predicate.buildDefinition.buildType == 'https://slsa-framework.github.io/github-actions-buildtypes/workflow/v1'"
             allowIfNoClaim: true
         functionaries:
           - "fe1c6281c5ff13e35286cc67e5a1fb3e6575b840a6c39ca4267d3805eb17288a"
@@ -31,7 +30,8 @@ steps:
     expectedPredicates:
       - predicateType: "https://in-toto.io/attestation/test-result/v0.1"
         expectedAttributes:
-          - rule: "size(failedTests) == 0"
-          - rule: "result == 'PASSED'"
+          - rule: "size(predicate.failedTests) == 0"
+          - rule: "predicate.result == 'PASSED'"
+          - rule: "size(subject) != 0"
         functionaries:
           - "fe1c6281c5ff13e35286cc67e5a1fb3e6575b840a6c39ca4267d3805eb17288a"

@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/google/cel-go/cel"
-	"github.com/google/cel-go/checker/decls"
+	"github.com/google/cel-go/interpreter"
 	linkPredicatev0 "github.com/in-toto/attestation/go/predicates/link/v0"
 	provenancePredicatev1 "github.com/in-toto/attestation/go/predicates/provenance/v1"
 	attestationv1 "github.com/in-toto/attestation/go/v1"
@@ -117,12 +117,7 @@ func applyArtifactRules(statement *attestationv1.Statement, materialRules []stri
 	return nil
 }
 
-func applyAttributeRules(predicateType string, predicate map[string]any, rules []Constraint) error {
-	env, err := getCELEnvForPredicateType(predicateType)
-	if err != nil {
-		return err
-	}
-
+func applyAttributeRules(env *cel.Env, input interpreter.Activation, rules []Constraint) error {
 	log.Infof("Applying attribute rules...")
 	for _, r := range rules {
 		log.Infof("Evaluating rule `%s`...", r.Rule)
@@ -136,12 +131,12 @@ func applyAttributeRules(predicateType string, predicate map[string]any, rules [
 			return err
 		}
 
-		out, details, err := prog.Eval(predicate)
+		out, _, err := prog.Eval(input)
 		if err != nil {
-			if strings.Contains(err.Error(), "no such attribute") && r.AllowIfNoClaim {
+			if strings.Contains(err.Error(), "no such attribute") || strings.Contains(err.Error(), "no such key") && r.AllowIfNoClaim {
 				continue
 			}
-			log.Info(details)
+			return err
 		}
 		switch result := out.Value().(type) {
 		case bool:
@@ -297,67 +292,3 @@ func getDestinationArtifacts(dstClaims map[AttestationIdentifier]*attestationv1.
 
 	return materials, products, nil
 }
-
-func getCELEnvForPredicateType(predicateType string) (*cel.Env, error) {
-	// FIXME: maybe we should take over https://github.com/google/cel-go/pull/219
-
-	switch predicateType {
-	case "https://in-toto.io/attestation/link/v0.3":
-		return cel.NewEnv(
-			cel.Variable("name", cel.StringType),
-			cel.Variable("command", cel.ListType(cel.StringType)),
-			cel.Variable("materials", cel.ListType(cel.ObjectType("in_toto_attestation.v1.ResourceDescriptor"))),
-			cel.Variable("byproducts", cel.ObjectType("google.protobuf.Struct")),
-			cel.Variable("environment", cel.ObjectType("google.protobuf.Struct")),
-		)
-	case "https://in-toto.io/attestation/test-result/v0.1":
-		return cel.NewEnv(
-			cel.Variable("result", cel.StringType),
-			cel.Variable("configuration", cel.ListType(cel.ObjectType("in_toto_attestation.v1.ResourceDescriptor"))),
-			cel.Variable("passedTests", cel.ListType(cel.StringType)),
-			cel.Variable("warnedTests", cel.ListType(cel.StringType)),
-			cel.Variable("failedTests", cel.ListType(cel.StringType)),
-		)
-	case "https://slsa.dev/provenance/v1":
-		// debugTypeEnv(&provenancePredicatev1.Provenance{})
-		env, err := cel.NewEnv(
-			cel.Types(&provenancePredicatev1.BuildDefinition{}),
-			cel.Types(&provenancePredicatev1.RunDetails{}),
-			cel.Declarations(
-				decls.NewVar("buildDefinition", decls.NewObjectType("in_toto_attestation.predicates.provenance.v1.BuildDefinition")),
-				decls.NewVar("runDetails", decls.NewObjectType("in_toto_attestation.predicates.provenance.v1.RunDetails")),
-			),
-		)
-
-		return env, err
-	}
-
-	return nil, fmt.Errorf("unknown predicate type")
-}
-
-// func debugTypeEnv(t any) {
-// 	log.Info("Debugging...")
-// 	env, _ := cel.NewEnv()
-// 	db := pb.NewDb()
-// 	reg := env.TypeProvider().(ref.TypeRegistry)
-// 	switch v := t.(type) {
-// 	case proto.Message:
-// 		fdMap := pb.CollectFileDescriptorSet(v)
-// 		for path, fd := range fdMap {
-// 			log.Infof("Found %s", path)
-// 			err := reg.RegisterDescriptor(fd)
-// 			if err != nil {
-// 				log.Info(err)
-// 			}
-// 			desc, err := db.RegisterDescriptor(fd)
-// 			if err != nil {
-// 				log.Info(err)
-// 			}
-// 			for _, name := range desc.GetTypeNames() {
-// 				log.Info(name)
-// 				reg.RegisterType(types.NewObjectType(name))
-// 			}
-// 		}
-// 	}
-// 	log.Info("Type Provider", env.TypeProvider())
-// }

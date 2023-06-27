@@ -2,16 +2,22 @@ package verifier
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
 	"time"
 
+	"github.com/google/cel-go/cel"
+	"github.com/google/cel-go/interpreter"
+	linkPredicatev0 "github.com/in-toto/attestation/go/predicates/link/v0"
+	provenancePredicatev1 "github.com/in-toto/attestation/go/predicates/provenance/v1"
+	testResultPredicatev0 "github.com/in-toto/attestation/go/predicates/test_result/v0"
 	attestationv1 "github.com/in-toto/attestation/go/v1"
 	"github.com/secure-systems-lab/go-securesystemslib/dsse"
 	"github.com/secure-systems-lab/go-securesystemslib/signerverifier"
 	log "github.com/sirupsen/logrus"
+	"google.golang.org/protobuf/encoding/protojson"
+	"google.golang.org/protobuf/proto"
 )
 
 func Verify(layout *Layout, attestations map[string]*dsse.Envelope) error {
@@ -54,8 +60,9 @@ func Verify(layout *Layout, attestations map[string]*dsse.Envelope) error {
 		if err != nil {
 			return err
 		}
+
 		statement := &attestationv1.Statement{}
-		if err := json.Unmarshal(sb, statement); err != nil {
+		if err := protojson.Unmarshal(sb, statement); err != nil {
 			return err
 		}
 
@@ -64,6 +71,11 @@ func Verify(layout *Layout, attestations map[string]*dsse.Envelope) error {
 		}
 	}
 	log.Info("Done.")
+
+	env, err := getCELEnv()
+	if err != nil {
+		return err
+	}
 
 	for _, step := range layout.Steps {
 		stepStatements, ok := claims[step.Name]
@@ -92,7 +104,12 @@ func Verify(layout *Layout, attestations map[string]*dsse.Envelope) error {
 					failedChecks = append(failedChecks, fmt.Errorf("for step %s, claim by %s failed artifact rules: %w", step.Name, functionary, err))
 				}
 
-				if err := applyAttributeRules(expectedPredicate.PredicateType, statement.Predicate.AsMap(), expectedPredicate.ExpectedAttributes); err != nil {
+				input, err := getActivation(statement)
+				if err != nil {
+					return err
+				}
+
+				if err := applyAttributeRules(env, input, expectedPredicate.ExpectedAttributes); err != nil {
 					failed = true
 					failedChecks = append(failedChecks, fmt.Errorf("for step %s, claim by %s failed attribute rules: %w", step.Name, functionary, err))
 				}
@@ -168,6 +185,60 @@ func getPredicates(statements map[AttestationIdentifier]*attestationv1.Statement
 	}
 
 	return matchedPredicates
+}
+
+func getPredicateMessage(statement *attestationv1.Statement) (map[string]proto.Message, error) {
+	predicateBytes, err := protojson.Marshal(statement.Predicate)
+	if err != nil {
+		return nil, err
+	}
+
+	var predicateMsg proto.Message
+	switch statement.PredicateType {
+	case "https://in-toto.io/attestation/link/v0.3":
+		link := &linkPredicatev0.Link{}
+		if err := protojson.Unmarshal(predicateBytes, link); err != nil {
+			return nil, err
+		}
+		predicateMsg = link
+
+	case "https://slsa.dev/provenance/v1":
+		provenance := &provenancePredicatev1.Provenance{}
+		if err := protojson.Unmarshal(predicateBytes, provenance); err != nil {
+			return nil, err
+		}
+		predicateMsg = provenance
+
+	case "https://in-toto.io/attestation/test-result/v0.1":
+		testResult := &testResultPredicatev0.TestResult{}
+		if err := protojson.Unmarshal(predicateBytes, testResult); err != nil {
+			return nil, err
+		}
+		predicateMsg = testResult
+
+	default:
+		return nil, fmt.Errorf("unknown predicate type")
+	}
+
+	return map[string]proto.Message{"predicate": predicateMsg}, nil
+}
+
+func getCELEnv() (*cel.Env, error) {
+	return cel.NewEnv(
+		cel.Types(&attestationv1.Statement{}),
+		cel.Variable("subject", cel.ListType(cel.ObjectType("in_toto_attestation.v1.ResourceDescriptor"))),
+		cel.Variable("predicateType", cel.StringType),
+		cel.Variable("predicate", cel.ObjectType("google.protobuf.Struct")),
+	)
+}
+
+func getActivation(statement *attestationv1.Statement) (interpreter.Activation, error) {
+	return interpreter.NewActivation(map[string]any{
+		"type":          statement.Type,
+		"subject":       statement.Subject,
+		"predicateType": statement.PredicateType,
+		"predicate":     statement.Predicate,
+	})
 }
 
 func getStepName(name string) string {
