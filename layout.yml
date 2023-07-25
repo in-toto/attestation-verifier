@@ -13,11 +13,11 @@ steps:
   - name: "clone"
     expectedMaterials:
       - "DISALLOW *"
+    expectedProducts:
+      - "CREATE foo"
+      - "DISALLOW *"
     expectedPredicates:
       - predicateType: "https://in-toto.io/attestation/link/v0.3"
-        expectedProducts:
-          - "CREATE foo"
-          - "DISALLOW *"
         expectedAttributes:
           - rule: "predicate.command == ['git', 'clone', 'https://example.com/foo.git']"
             allowIfNoClaim: true
@@ -40,11 +40,11 @@ steps:
     expectedMaterials:
       - "MATCH foo WITH products FROM clone"
       - "DISALLOW *"
+    expectedProducts:
+      - "CREATE bin/foo"
+      - "DISALLOW *"
     expectedPredicates:
       - predicateType: "https://slsa.dev/provenance/v1"
-        expectedProducts:
-          - "CREATE bin/foo"
-          - "DISALLOW *"
         expectedAttributes:
           - rule: "predicate.buildDefinition.buildType == 'https://slsa-framework.github.io/github-actions-buildtypes/workflow/v1'"
             allowIfNoClaim: false

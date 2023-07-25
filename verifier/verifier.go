@@ -95,7 +95,7 @@ func Verify(layout *Layout, attestations map[string]*dsse.Envelope) error {
 				log.Infof("Verifying claim for step '%s' of type '%s' by '%s'...", step.Name, expectedPredicate.PredicateType, functionary)
 				failed := false
 
-				if err := applyArtifactRules(statement, step.ExpectedMaterials, expectedPredicate.ExpectedProducts, claims); err != nil {
+				if err := applyArtifactRules(statement, step.ExpectedMaterials, step.ExpectedProducts, claims); err != nil {
 					failed = true
 					failedChecks = append(failedChecks, fmt.Errorf("for step %s, claim by %s failed artifact rules: %w", step.Name, functionary, err))
 				}
