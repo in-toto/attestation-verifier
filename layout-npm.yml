@@ -1,0 +1,44 @@
+expires: "2024-10-10T12:23:22Z"
+functionaries:
+  fe1c6281c5ff13e35286cc67e5a1fb3e6575b840a6c39ca4267d3805eb17288a:
+    keyType: "ed25519"
+    scheme: "ed25519"
+    keyIDHashAlgorithms:
+      - "sha256"
+      - "sha512"
+    keyVal:
+      public: "7345b83c121ea0d9ffc3b38d69958718b8435e8cb0552f889d695586693e1b89"
+    keyID: "fe1c6281c5ff13e35286cc67e5a1fb3e6575b840a6c39ca4267d3805eb17288a"
+steps:
+  - name: "build"
+    expectedMaterials:
+      - "ALLOW git+https://github.com/{github_repository}@{github_ref}"
+      - "DISALLOW *"
+    expectedProducts:
+      - "CREATE pkg:npm/{package_name}@{package_version}"
+      - "DISALLOW *"
+    expectedPredicates:
+      - predicateType: "https://slsa.dev/provenance/v0.2"
+        expectedAttributes:
+          - rule: "predicate.buildType == 'https://github.com/npm/cli/gha/v2'"
+          - rule: "predicate.invocation.configSource.uri == '{config_source}'"
+          - rule: "predicate.invocation.configSource.entryPoint == '{entry_point}'"
+          - rule: "predicate.invocation.environment.GITHUB_REF == '{github_ref}'"
+          - rule: "predicate.invocation.environment.GITHUB_REPOSITORY == '{github_repository}'"
+          - rule: "predicate.invocation.environment.GITHUB_REPOSITORY_ID == '{github_repository_id}'"
+          - rule: "predicate.invocation.environment.GITHUB_REPOSITORY_OWNER_ID == '{github_repository_owner_id}'"
+          - rule: "predicate.invocation.environment.GITHUB_WORKFLOW_REF == '{github_workflow_ref}'"
+        functionaries:
+          - "fe1c6281c5ff13e35286cc67e5a1fb3e6575b840a6c39ca4267d3805eb17288a"
+  - name: "publish"
+    expectedMaterials:
+      - "MATCH * WITH products FROM build"
+      - "DISALLOW *"
+    expectedPredicates:
+      - predicateType: "https://github.com/npm/attestation/tree/main/specs/publish/v0.1"
+        expectedAttributes:
+          - rule: "predicate.name == '{package_name}'"
+          - rule: "predicate.version == '{package_version}'"
+          - rule: "predicate.registry == 'https://registry.npmjs.org'"
+        functionaries:
+          - "fe1c6281c5ff13e35286cc67e5a1fb3e6575b840a6c39ca4267d3805eb17288a"

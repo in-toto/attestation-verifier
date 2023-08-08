@@ -13,6 +13,7 @@ import (
 	provenancePredicatev1 "github.com/in-toto/attestation/go/predicates/provenance/v1"
 	attestationv1 "github.com/in-toto/attestation/go/v1"
 	"github.com/in-toto/in-toto-golang/in_toto"
+	provenancePredicatev02 "github.com/in-toto/in-toto-golang/in_toto/slsa_provenance/v0.2"
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/protobuf/encoding/protojson"
 )
@@ -182,6 +183,30 @@ func getMaterialsAndProducts(statement *attestationv1.Statement) ([]*attestation
 		}
 
 		return provenance.BuildDefinition.ResolvedDependencies, statement.Subject, nil
+
+	case "https://slsa.dev/provenance/v0.2":
+		// TODO: assumes provenance v0.2 is in statement v1
+
+		provenanceBytes, err := json.Marshal(statement.Predicate)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		provenance := &provenancePredicatev02.ProvenancePredicate{}
+		if err := json.Unmarshal(provenanceBytes, provenance); err != nil {
+			return nil, nil, err
+		}
+
+		materials := []*attestationv1.ResourceDescriptor{}
+		for _, material := range provenance.Materials {
+			materials = append(materials, &attestationv1.ResourceDescriptor{
+				Name:   material.URI, // TODO: figure this out
+				Uri:    material.URI,
+				Digest: material.Digest,
+			})
+		}
+
+		return materials, statement.Subject, nil
 
 	default:
 		return statement.Subject, nil, nil

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"regexp"
 	"strings"
 	"time"
 
@@ -16,7 +17,7 @@ import (
 	"google.golang.org/protobuf/encoding/protojson"
 )
 
-func Verify(layout *Layout, attestations map[string]*dsse.Envelope) error {
+func Verify(layout *Layout, attestations map[string]*dsse.Envelope, parameters map[string]string) error {
 	log.Info("Verifying layout expiry...")
 	expiry, err := time.Parse(time.RFC3339, layout.Expires)
 	if err != nil {
@@ -27,6 +28,15 @@ func Verify(layout *Layout, attestations map[string]*dsse.Envelope) error {
 		return fmt.Errorf("layout has expired")
 	}
 	log.Info("Done.")
+
+	if len(parameters) > 0 {
+		log.Info("Substituting parameters...")
+		layout, err = substituteParameters(layout, parameters)
+		if err != nil {
+			return err
+		}
+		log.Info("Done.")
+	}
 
 	log.Info("Fetching verifiers...")
 	verifiers, err := getVerifiers(layout.Functionaries)
@@ -206,4 +216,57 @@ func getStepName(name string) string {
 	nameS := strings.Split(name, ".")
 	nameS = nameS[:len(nameS)-1]
 	return strings.Join(nameS, ".")
+}
+
+func substituteParameters(layout *Layout, parameters map[string]string) (*Layout, error) {
+	replacementDirectives := make([]string, 0, 2*len(parameters))
+	re := regexp.MustCompile("^[a-zA-Z0-9_-]+$")
+
+	for parameter, value := range parameters {
+		if ok := re.MatchString(parameter); !ok {
+			return nil, fmt.Errorf("invalid parameter format")
+		}
+
+		replacementDirectives = append(replacementDirectives, fmt.Sprintf("{%s}", parameter))
+		replacementDirectives = append(replacementDirectives, value)
+	}
+
+	replacer := strings.NewReplacer(replacementDirectives...)
+
+	for _, step := range layout.Steps {
+		for i, materialRule := range step.ExpectedMaterials {
+			step.ExpectedMaterials[i] = replace(replacer, materialRule)
+		}
+
+		for i, productRule := range step.ExpectedProducts {
+			step.ExpectedProducts[i] = replace(replacer, productRule)
+		}
+
+		for _, predicateType := range step.ExpectedPredicates {
+			for i, attributeRule := range predicateType.ExpectedAttributes {
+				predicateType.ExpectedAttributes[i] = Constraint{
+					Rule:           replace(replacer, attributeRule.Rule),
+					AllowIfNoClaim: attributeRule.AllowIfNoClaim,
+					Warn:           attributeRule.Warn,
+				}
+			}
+		}
+	}
+
+	return layout, nil
+}
+
+func replace(replacer *strings.Replacer, input string) string {
+	var output string
+	for {
+		// repeat to catch embedded paramsub directives
+		output = replacer.Replace(input)
+		if output == input {
+			break
+		}
+
+		input = output
+	}
+
+	return output
 }

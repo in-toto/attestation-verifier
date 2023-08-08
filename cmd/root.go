@@ -19,6 +19,7 @@ var rootCmd = &cobra.Command{
 var (
 	layoutPath      string
 	attestationsDir string
+	parametersPath  string
 )
 
 func Execute() {
@@ -43,6 +44,13 @@ func init() {
 		"a",
 		"",
 		"Directory to load attestations from",
+	)
+
+	rootCmd.Flags().StringVar(
+		&parametersPath,
+		"substitute-parameters",
+		"",
+		"Path to JSON file containing key-value string pairs for parameter substitution in the layout",
 	)
 
 	rootCmd.MarkFlagRequired("layout")
@@ -87,5 +95,17 @@ func verify(cmd *cobra.Command, args []string) error {
 		attestations[strings.TrimSuffix(name, ".json")] = envelope
 	}
 
-	return verifier.Verify(layout, attestations)
+	parameters := map[string]string{}
+	if len(parametersPath) > 0 {
+		contents, err := os.ReadFile(parametersPath)
+		if err != nil {
+			return err
+		}
+
+		if err := json.Unmarshal(contents, &parameters); err != nil {
+			return err
+		}
+	}
+
+	return verifier.Verify(layout, attestations, parameters)
 }

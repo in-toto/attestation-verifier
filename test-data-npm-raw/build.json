@@ -1,0 +1,47 @@
+{
+    "_type": "https://in-toto.io/Statement/v0.1",
+    "subject": [
+        {
+            "name": "pkg:npm/sigstore@1.2.0",
+            "digest": {
+                "sha512": "16bf7e5b59e40522190a425047b8c39ffcc8d145cdb15a69fbb9834240a764e2311bda7ac8d5c1c7dc67b47b1f532607139e570e4915577fab61bae4cc079eb0"
+            }
+        }
+    ],
+    "predicateType": "https://slsa.dev/provenance/v0.2",
+    "predicate": {
+        "buildType": "https://github.com/npm/cli/gha/v2",
+        "builder": {
+            "id": "https://github.com/actions/runner"
+        },
+        "invocation": {
+            "configSource": {
+                "uri": "git+https://github.com/sigstore/sigstore-js@refs/heads/main",
+                "digest": {
+                    "sha1": "5b8c0801d1f5d105351a403f58c38269de93f680"
+                },
+                "entryPoint": ".github/workflows/release.yml"
+            },
+            "environment": {
+                "GITHUB_EVENT_NAME": "push",
+                "GITHUB_REF": "refs/heads/main",
+                "GITHUB_REPOSITORY": "sigstore/sigstore-js",
+                "GITHUB_REPOSITORY_ID": "495574555",
+                "GITHUB_REPOSITORY_OWNER_ID": "71096353",
+                "GITHUB_RUN_ATTEMPT": "1",
+                "GITHUB_RUN_ID": "4503589496",
+                "GITHUB_SHA": "5b8c0801d1f5d105351a403f58c38269de93f680",
+                "GITHUB_WORKFLOW_REF": "sigstore/sigstore-js/.github/workflows/release.yml@refs/heads/main",
+                "GITHUB_WORKFLOW_SHA": "5b8c0801d1f5d105351a403f58c38269de93f680"
+            }
+        },
+        "materials": [
+            {
+                "uri": "git+https://github.com/sigstore/sigstore-js@refs/heads/main",
+                "digest": {
+                    "sha1": "5b8c0801d1f5d105351a403f58c38269de93f680"
+                }
+            }
+        ]
+    }
+}
