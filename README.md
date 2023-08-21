@@ -23,7 +23,7 @@ step. Additionally, each step definition in the layout has some additional
 attribute checks.
 
 ```bash
-$ in-toto-attestation-verifier -l layout.yml -a test-data
+$ in-toto-attestation-verifier -l layouts/layout.yml -a test-data
 INFO[0000] Verifying layout expiry...
 INFO[0000] Done.
 INFO[0000] Fetching verifiers...
