@@ -1,4 +1,4 @@
-module github.com/adityasaky/in-toto-attestation-verifier
+module github.com/in-toto/attestation-verifier
 
 go 1.20
 

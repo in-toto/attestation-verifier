@@ -1,13 +1,14 @@
-# in-toto-attestation-verifier
+# in-toto/attestation-verifier
 
-This is a prototype of verification capabilities introduced in in-toto
-enhancements [10](https://github.com/in-toto/ITE/pull/49) and
-[11](https://github.com/in-toto/ITE/pull/50).
+This is a **prototype** of verification capabilities introduced in in-toto
+enhancements [10](https://github.com/in-toto/ITE/blob/master/ITE/10/README.adoc)
+and [11](https://github.com/in-toto/ITE/pull/50). This verifier must not be used
+in production systems.
 
 ## Usage
 
 Install using `go install`. Assuming `$GOPATH/bin` is in your path, you should
-be able to invoke the verifier using `in-toto-attestation-verifier`.
+be able to invoke the verifier using `attestation-verifier`.
 
 ## Example
 
@@ -23,7 +24,7 @@ step. Additionally, each step definition in the layout has some additional
 attribute checks.
 
 ```bash
-$ in-toto-attestation-verifier -l layouts/layout.yml -a test-data
+$ attestation-verifier -l layouts/layout.yml -a test-data
 INFO[0000] Verifying layout expiry...
 INFO[0000] Done.
 INFO[0000] Fetching verifiers...
