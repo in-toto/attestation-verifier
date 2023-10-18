@@ -227,7 +227,12 @@ func substituteParameters(layout *Layout, parameters map[string]string) (*Layout
 			return nil, fmt.Errorf("invalid parameter format")
 		}
 
-		replacementDirectives = append(replacementDirectives, fmt.Sprintf("{%s}", parameter))
+		parameterVar := fmt.Sprintf("{%s}", parameter)
+		if strings.Contains(value, parameterVar) {
+			return nil, fmt.Errorf("parameter's value refers to itself")
+		}
+
+		replacementDirectives = append(replacementDirectives, parameterVar)
 		replacementDirectives = append(replacementDirectives, value)
 	}
 
