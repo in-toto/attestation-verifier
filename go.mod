@@ -6,7 +6,7 @@ require (
 	github.com/google/cel-go v0.18.1
 	github.com/in-toto/attestation v0.1.1-0.20230619131757-2f78724ec855
 	github.com/in-toto/in-toto-golang v0.9.0
-	github.com/secure-systems-lab/go-securesystemslib v0.6.0
+	github.com/secure-systems-lab/go-securesystemslib v0.7.0
 	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/cobra v1.7.0
 	google.golang.org/protobuf v1.31.0
