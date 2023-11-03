@@ -16,7 +16,9 @@ type Functionary struct {
 }
 
 type KeyVal struct {
-	Public string `yaml:"public"`
+	Public   string `yaml:"public"`
+	Identity string `yaml:"identity,omitempty"`
+	Issuer   string `yaml:"issuer,omitempty"`
 }
 
 type Constraint struct {
