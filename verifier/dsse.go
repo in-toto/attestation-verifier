@@ -72,9 +72,16 @@ func (ev *envelopeVerifier) Verify(ctx context.Context, e *dsse.Envelope) ([]acc
 				continue
 			}
 
-			err = v.Verify(ctx, paeEnc, sig)
-			if err != nil {
-				continue
+			if sigstoreKey, isSigstore := v.(*sigstoreSignerVerifier); isSigstore {
+				err = verifySigstore(e, s, sigstoreKey.issuer, sigstoreKey.identity)
+				if err != nil {
+					continue
+				}
+			} else {
+				err = v.Verify(ctx, paeEnc, sig)
+				if err != nil {
+					continue
+				}
 			}
 
 			acceptedKey := acceptedKey{

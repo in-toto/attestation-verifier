@@ -3,12 +3,19 @@ package verifier
 import (
 	"context"
 	"crypto"
+	"crypto/x509"
+	_ "embed"
+	"encoding/pem"
 	"errors"
 	"fmt"
 
+	"github.com/secure-systems-lab/go-securesystemslib/dsse"
 	"github.com/secure-systems-lab/go-securesystemslib/signerverifier"
 	gitsignVerifier "github.com/sigstore/gitsign/pkg/git"
 	gitsignRekor "github.com/sigstore/gitsign/pkg/rekor"
+	"github.com/sigstore/sigstore-go/pkg/bundle"
+	"github.com/sigstore/sigstore-go/pkg/root"
+	sigstoreVerify "github.com/sigstore/sigstore-go/pkg/verify"
 
 	"github.com/sigstore/cosign/v2/pkg/cosign"
 	"github.com/sigstore/sigstore/pkg/fulcioroots"
@@ -23,6 +30,9 @@ var (
 	ErrIncorrectVerificationKey   = errors.New("incorrect key provided to verify signature")
 	ErrVerifyingSigstoreSignature = errors.New("unable to verify sigstore signature")
 )
+
+//go:embed root/trusted-root.json
+var trustedRoot []byte
 
 type sigstoreSignerVerifier struct {
 	identity string
@@ -98,4 +108,27 @@ func (s *sigstoreSignerVerifier) KeyID() (string, error) {
 
 func (s *sigstoreSignerVerifier) Public() crypto.PublicKey {
 	return errNotImplemented
+}
+
+func verifySigstore(env *dsse.Envelope, sig dsse.Signature, issuer, identity string) error {
+	sigContent := &bundle.Envelope{Envelope: env}
+
+	block, _ := pem.Decode([]byte(sig.Cert))
+
+	cert, err := x509.ParseCertificate(block.Bytes)
+	if err != nil {
+		return err
+	}
+	verificationContent := &bundle.CertificateChain{Certificates: []*x509.Certificate{cert}}
+
+	trustedMaterial, err := root.NewTrustedRootFromJSON(trustedRoot)
+	if err != nil {
+		return err
+	}
+
+	if err := sigstoreVerify.VerifySignature(sigContent, verificationContent, trustedMaterial); err != nil {
+		return err
+	}
+
+	return nil
 }
