@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"regexp"
+	"runtime"
 	"strings"
 	"time"
 
@@ -43,6 +44,7 @@ func Verify(layout *Layout, attestations map[string]*dsse.Envelope, parameters m
 	if err != nil {
 		return err
 	}
+	runtime.Breakpoint()
 	envVerifier, err := newEnvelopeVerifier(verifiers...)
 	if err != nil {
 		return err
