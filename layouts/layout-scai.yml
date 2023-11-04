@@ -1,0 +1,37 @@
+expires: "2024-10-10T12:23:22Z"
+functionaries:
+  sigstore1:
+    keyType: "sigstore-oidc"
+    scheme: "fulcio"
+    keyVal:
+      identity: "https://github.com/marcelamelara/private-data-objects@refs/heads/intoto-kccncna2023-demo"
+      issuer: "https://token.actions.githubusercontent.com"
+    keyID: "sigstore1"
+steps:
+  - name: "build"
+    expectedMaterials:
+      - "ALLOW git+https://github.com/marcelamelara/private-data-objects@refs/heads/generate-swsc-build-metadata"
+      - "DISALLOW *"
+    expectedProducts:
+      - "CREATE pdo_client_wawaka"
+      - "DISALLOW *"
+    expectedPredicates:
+      - predicateType: "https://slsa.dev/provenance/v0.2"
+        expectedAttributes:
+          - rule: "predicate.builder.id == 'https://github.com/slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@refs/tags/v1.7.0'"
+          - rule: "predicate.invocation.configSource.uri == 'git+https://github.com/marcelamelara/private-data-objects@refs/heads/generate-swsc-build-metadata'"
+          - rule: "predicate.invocation.configSource.digest.sha1 == '87b74378e8c9ccf335a27ffcdc16636990254e1e'"
+        functionaries:
+          - "sigstore1"
+  # - name: "evidence-collection"
+  #   expectedMaterials:
+  #     - "MATCH pdo_client_wawaka WITH products FROM build"
+  #     - "DISALLOW *"
+  #   expectedPredicates:
+  #     - predicateType: "https://in-toto.io/attestation/scai/attribute-report/v0.2"
+  #       expectedAttributes:
+  #         - rule: "size(predicate.attributes) >= 2"
+  #         - rule: "predicate.attributes.exists(a, a.attribute == 'HasSBOM')"
+  #         - rule: "predicate.attributes.exists(a, a.attribute == 'HasSLSA')"
+  #       functionaries:
+  #         - "sigstore1"

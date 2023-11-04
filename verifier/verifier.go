@@ -43,7 +43,7 @@ func Verify(layout *Layout, attestations map[string]*dsse.Envelope, parameters m
 	if err != nil {
 		return err
 	}
-	envVerifier, err := dsse.NewEnvelopeVerifier(verifiers...)
+	envVerifier, err := newEnvelopeVerifier(verifiers...)
 	if err != nil {
 		return err
 	}
@@ -143,14 +143,27 @@ func getVerifiers(publicKeys map[string]Functionary) ([]dsse.Verifier, error) {
 
 	for _, key := range publicKeys {
 		log.Infof("Creating verifier for key %s", key.KeyID)
-		sslibKey := &signerverifier.SSLibKey{
-			KeyIDHashAlgorithms: key.KeyIDHashAlgorithms,
-			KeyType:             key.KeyType,
-			KeyVal: signerverifier.KeyVal{
-				Public: key.KeyVal.Public,
-			},
-			Scheme: key.Scheme,
-			KeyID:  key.KeyID,
+		var sslibKey *signerverifier.SSLibKey
+		if key.KeyType == signerverifier.SigstoreKeyType {
+			sslibKey = &signerverifier.SSLibKey{
+				KeyType: key.KeyType,
+				KeyVal: signerverifier.KeyVal{
+					Identity: key.KeyVal.Identity,
+					Issuer:   key.KeyVal.Issuer,
+				},
+				Scheme: key.Scheme,
+				KeyID:  key.KeyID,
+			}
+		} else {
+			sslibKey = &signerverifier.SSLibKey{
+				KeyIDHashAlgorithms: key.KeyIDHashAlgorithms,
+				KeyType:             key.KeyType,
+				KeyVal: signerverifier.KeyVal{
+					Public: key.KeyVal.Public,
+				},
+				Scheme: key.Scheme,
+				KeyID:  key.KeyID,
+			}
 		}
 
 		switch key.KeyType { // TODO: use scheme
@@ -170,6 +183,13 @@ func getVerifiers(publicKeys map[string]Functionary) ([]dsse.Verifier, error) {
 			verifiers = append(verifiers, verifier)
 		case "ed25519":
 			verifier, err := signerverifier.NewED25519SignerVerifierFromSSLibKey(sslibKey)
+			if err != nil {
+				return nil, err
+			}
+
+			verifiers = append(verifiers, verifier)
+		case signerverifier.SigstoreKeyType:
+			verifier, err := newSigstoreSignerVerifierFromSSLibKey(sslibKey)
 			if err != nil {
 				return nil, err
 			}
