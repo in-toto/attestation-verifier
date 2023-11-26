@@ -59,7 +59,8 @@ func Verify(layout *Layout, attestations map[string]*dsse.Envelope, parameters m
 
 		acceptedKeys, err := envVerifier.Verify(context.Background(), env)
 		if err != nil {
-			return err
+			log.Infof("Unable to verify %s's signatures", attestationName)
+			continue
 		}
 
 		sb, err := env.DecodeB64Payload()
