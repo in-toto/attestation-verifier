@@ -59,7 +59,20 @@ func Verify(layout *Layout, attestations map[string]*dsse.Envelope, parameters m
 
 		acceptedKeys, err := envVerifier.Verify(context.Background(), env)
 		if err != nil {
-			return err
+			// The verifier loads all attestations and verifies their
+			// signatures. It represents their claims in the format "<signer>
+			// says <claim> for <step>", allowing policy to be written as "does
+			// one of <trusted signers> say <claim> for <step>?"
+			// While this might result in verifying the signatures of
+			// attestations that aren't required for the specific layout, it
+			// more cleanly separates policy evaluation from claim expression.
+			// Also, we do not authenticate attestations from unknown verifiers,
+			// as the keys used to verify the attestation signatures are taken
+			// from the layout.  If we encounter an attestation signed by an
+			// unrecognized key, the verifier logs this and moves on. This
+			// attestation is not considered for further verification.
+			log.Infof("Unable to verify %s's signatures", attestationName)
+			continue
 		}
 
 		sb, err := env.DecodeB64Payload()
