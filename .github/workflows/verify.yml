@@ -17,3 +17,6 @@ jobs:
       - name: Verify test NPM layout
         run: |
           go run main.go -l layouts/layout-npm.yml -a test-data-npm --substitute-parameters parameters/npm-sigstore.json
+      - name: Verify witness collection layout
+        run: |
+          go run main.go -l layouts/layout-witness.yml -a test-data-witness
