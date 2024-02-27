@@ -27,7 +27,7 @@ type Constraint struct {
 }
 
 type ExpectedAttestorConstraints struct {
-	AttestorType       string       `yaml:"predicateType"`
+	AttestorType       string       `yaml:"attestorType"`
 	ExpectedAttributes []Constraint `yaml:"expectedAttributes"`
 }
 

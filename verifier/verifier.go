@@ -17,6 +17,21 @@ import (
 	"github.com/secure-systems-lab/go-securesystemslib/signerverifier"
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/protobuf/encoding/protojson"
+
+	// attestors
+	_ "github.com/in-toto/go-witness/attestation/aws-iid"
+	_ "github.com/in-toto/go-witness/attestation/commandrun"
+	_ "github.com/in-toto/go-witness/attestation/environment"
+	_ "github.com/in-toto/go-witness/attestation/gcp-iit"
+	_ "github.com/in-toto/go-witness/attestation/git"
+	_ "github.com/in-toto/go-witness/attestation/github"
+	_ "github.com/in-toto/go-witness/attestation/gitlab"
+	_ "github.com/in-toto/go-witness/attestation/jwt"
+	_ "github.com/in-toto/go-witness/attestation/material"
+	_ "github.com/in-toto/go-witness/attestation/maven"
+	_ "github.com/in-toto/go-witness/attestation/oci"
+	_ "github.com/in-toto/go-witness/attestation/product"
+	_ "github.com/in-toto/go-witness/attestation/sarif"
 )
 
 func Verify(layout *Layout, attestations map[string]*dsse.Envelope, parameters map[string]string) error {
@@ -79,12 +94,12 @@ func Verify(layout *Layout, attestations map[string]*dsse.Envelope, parameters m
 
 		sb, err := env.DecodeB64Payload()
 		if err != nil {
-			return err
+			return fmt.Errorf("unable to decode base64-encoded payload: %w", err)
 		}
 
 		statement := &attestationv1.Statement{}
 		if err := protojson.Unmarshal(sb, statement); err != nil {
-			return err
+			return fmt.Errorf("unable to load statement payload: %w", err)
 		}
 
 		for _, ak := range acceptedKeys {
@@ -148,6 +163,7 @@ func Verify(layout *Layout, attestations map[string]*dsse.Envelope, parameters m
 
 			// Examine collector claims in attestation collection
 			if step.ExpectedPredicateType == witnessattestation.CollectionType {
+				log.Infof("Verifying attestors for collection of step '%s'", step.Name)
 				collectionBytes, err := json.Marshal(statement.Predicate)
 				if err != nil {
 					return err
@@ -273,8 +289,7 @@ func getCELEnv() (*cel.Env, error) {
 
 func getCollectionCELEnv() (*cel.Env, error) {
 	return cel.NewEnv(
-		cel.Types(&witnessattestation.CollectionAttestation{}),
-		cel.Variable("type", cel.StringType),
+		// cel.Variable("type", cel.StringType),
 		cel.Variable("attestation", cel.ObjectType("google.protobuf.Struct")),
 		cel.Variable("startTime", cel.TimestampType),
 		cel.Variable("endTime", cel.TimestampType),
@@ -291,9 +306,17 @@ func getActivation(statement *attestationv1.Statement) (interpreter.Activation, 
 }
 
 func getCollectionActivation(collection *witnessattestation.CollectionAttestation) (interpreter.Activation, error) {
+	attestationBytes, err := json.Marshal(collection.Attestation)
+	if err != nil {
+		return nil, err
+	}
+	attestation := map[string]any{}
+	if err := json.Unmarshal(attestationBytes, &attestation); err != nil {
+		return nil, err
+	}
+
 	return interpreter.NewActivation(map[string]any{
-		"type":        collection.Type,
-		"attestation": collection.Attestation,
+		"attestation": attestation,
 		"startTime":   collection.StartTime,
 		"endTime":     collection.EndTime,
 	})
@@ -343,8 +366,16 @@ func substituteParameters(layout *Layout, parameters map[string]string) (*Layout
 			}
 		}
 
-		// TODO: support expected collectors
-
+		for _, attestorConstraint := range step.ExpectedAttestors {
+			for j, attributeRule := range attestorConstraint.ExpectedAttributes {
+				attestorConstraint.ExpectedAttributes[j] = Constraint{
+					Rule:           replace(replacer, attributeRule.Rule),
+					AllowIfNoClaim: attributeRule.AllowIfNoClaim,
+					Warn:           attributeRule.Warn,
+					Debug:          replace(replacer, attributeRule.Debug),
+				}
+			}
+		}
 	}
 
 	return layout, nil
