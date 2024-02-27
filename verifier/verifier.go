@@ -11,6 +11,7 @@ import (
 	"github.com/google/cel-go/cel"
 	"github.com/google/cel-go/interpreter"
 	attestationv1 "github.com/in-toto/attestation/go/v1"
+	witnessattestation "github.com/in-toto/go-witness/attestation"
 	"github.com/secure-systems-lab/go-securesystemslib/dsse"
 	"github.com/secure-systems-lab/go-securesystemslib/signerverifier"
 	log "github.com/sirupsen/logrus"
@@ -39,7 +40,7 @@ func Verify(layout *Layout, attestations map[string]*dsse.Envelope, parameters m
 	}
 
 	log.Info("Fetching verifiers...")
-	verifiers, err := getVerifiers(layout.Functionaries)
+	verifiers, err := getEnvelopeVerifiers(layout.Functionaries)
 	if err != nil {
 		return err
 	}
@@ -50,11 +51,11 @@ func Verify(layout *Layout, attestations map[string]*dsse.Envelope, parameters m
 	log.Info("Done.")
 
 	log.Info("Loading attestations as claims...")
-	claims := map[string]map[AttestationIdentifier]*attestationv1.Statement{}
+	claims := map[string]map[string]*attestationv1.Statement{}
 	for attestationName, env := range attestations {
 		stepName := getStepName(attestationName)
 		if claims[stepName] == nil {
-			claims[stepName] = map[AttestationIdentifier]*attestationv1.Statement{}
+			claims[stepName] = map[string]*attestationv1.Statement{}
 		}
 
 		acceptedKeys, err := envVerifier.Verify(context.Background(), env)
@@ -86,7 +87,7 @@ func Verify(layout *Layout, attestations map[string]*dsse.Envelope, parameters m
 		}
 
 		for _, ak := range acceptedKeys {
-			claims[stepName][AttestationIdentifier{Functionary: ak.KeyID, PredicateType: statement.PredicateType}] = statement
+			claims[stepName][ak.KeyID] = statement
 		}
 	}
 	log.Info("Done.")
@@ -102,47 +103,62 @@ func Verify(layout *Layout, attestations map[string]*dsse.Envelope, parameters m
 			return fmt.Errorf("no claims found for step %s", step.Name)
 		}
 
-		for _, expectedPredicate := range step.ExpectedPredicates {
-			if expectedPredicate.Threshold == 0 {
-				expectedPredicate.Threshold = 1
+		if step.Threshold == 0 {
+			step.Threshold = 1
+		}
+
+		trustedStatements := getPredicates(stepStatements, step.Functionaries)
+		if len(trustedStatements) < step.Threshold {
+			return fmt.Errorf("threshold not met for step %s", step.Name)
+		}
+
+		// TODO: reduce statements if they're identical to avoid checking all of
+		// them
+		// See in-toto 1.0
+
+		acceptedPredicates := 0
+		failedChecks := []error{}
+		for functionary, statement := range trustedStatements {
+			log.Infof("Verifying claim for step '%s' of type '%s' by '%s'...", step.Name, step.ExpectedPredicateType, functionary)
+			failed := false
+
+			// Check the predicate type matches the expected value in the layout
+			if step.ExpectedPredicateType != statement.PredicateType {
+				failed = true
+				failedChecks = append(failedChecks, fmt.Errorf("for step %s, statement with unexpected predicate type %s found", step.Name, statement.PredicateType))
 			}
 
-			matchedPredicates := getPredicates(stepStatements, expectedPredicate.PredicateType, expectedPredicate.Functionaries)
-			if len(matchedPredicates) < expectedPredicate.Threshold {
-				return fmt.Errorf("threshold not met for step %s", step.Name)
+			// Check materials and products
+			if err := applyArtifactRules(statement, step.ExpectedMaterials, step.ExpectedProducts, claims); err != nil {
+				failed = true
+				failedChecks = append(failedChecks, fmt.Errorf("for step %s, claim by %s failed artifact rules: %w", step.Name, functionary, err))
 			}
 
-			failedChecks := []error{}
-			acceptedPredicates := 0
-			for functionary, statement := range matchedPredicates {
-				log.Infof("Verifying claim for step '%s' of type '%s' by '%s'...", step.Name, expectedPredicate.PredicateType, functionary)
-				failed := false
-
-				if err := applyArtifactRules(statement, step.ExpectedMaterials, step.ExpectedProducts, claims); err != nil {
-					failed = true
-					failedChecks = append(failedChecks, fmt.Errorf("for step %s, claim by %s failed artifact rules: %w", step.Name, functionary, err))
-				}
-
-				input, err := getActivation(statement)
-				if err != nil {
-					return err
-				}
-
-				if err := applyAttributeRules(env, input, expectedPredicate.ExpectedAttributes); err != nil {
-					failed = true
-					failedChecks = append(failedChecks, fmt.Errorf("for step %s, claim by %s failed attribute rules: %w", step.Name, functionary, err))
-				}
-
-				if failed {
-					log.Infof("Claim for step %s of type %s by %s failed.", step.Name, expectedPredicate.PredicateType, functionary)
-				} else {
-					acceptedPredicates += 1
-					log.Info("Done.")
-				}
+			input, err := getActivation(statement)
+			if err != nil {
+				return err
 			}
-			if acceptedPredicates < expectedPredicate.Threshold {
-				return errors.Join(failedChecks...)
+
+			// Check attribute rules
+			if err := applyAttributeRules(env, input, step.ExpectedAttributes); err != nil {
+				failed = true
+				failedChecks = append(failedChecks, fmt.Errorf("for step %s, claim by %s failed attribute rules: %w", step.Name, functionary, err))
 			}
+
+			// Examine collector claims in attestation collection
+			if step.ExpectedPredicateType == witnessattestation.CollectionType {
+				// TODO: support expected collector bits
+			}
+
+			if failed {
+				log.Infof("Claim for step %s of type %s by %s failed.", step.Name, step.ExpectedPredicateType, functionary)
+			} else {
+				acceptedPredicates += 1
+				log.Info("Done.")
+			}
+		}
+		if acceptedPredicates < step.Threshold {
+			return errors.Join(failedChecks...)
 		}
 	}
 
@@ -151,7 +167,7 @@ func Verify(layout *Layout, attestations map[string]*dsse.Envelope, parameters m
 	return nil
 }
 
-func getVerifiers(publicKeys map[string]Functionary) ([]dsse.Verifier, error) {
+func getEnvelopeVerifiers(publicKeys map[string]Functionary) ([]dsse.Verifier, error) {
 	verifiers := []dsse.Verifier{}
 
 	for _, key := range publicKeys {
@@ -194,11 +210,11 @@ func getVerifiers(publicKeys map[string]Functionary) ([]dsse.Verifier, error) {
 	return verifiers, nil
 }
 
-func getPredicates(statements map[AttestationIdentifier]*attestationv1.Statement, predicateType string, functionaries []string) map[string]*attestationv1.Statement {
+func getPredicates(statements map[string]*attestationv1.Statement, functionaries []string) map[string]*attestationv1.Statement {
 	matchedPredicates := map[string]*attestationv1.Statement{}
 
 	for _, keyID := range functionaries {
-		statement, ok := statements[AttestationIdentifier{PredicateType: predicateType, Functionary: keyID}]
+		statement, ok := statements[keyID]
 		if ok {
 			matchedPredicates[keyID] = statement
 		}
@@ -260,16 +276,17 @@ func substituteParameters(layout *Layout, parameters map[string]string) (*Layout
 			step.ExpectedProducts[i] = replace(replacer, productRule)
 		}
 
-		for _, predicateType := range step.ExpectedPredicates {
-			for i, attributeRule := range predicateType.ExpectedAttributes {
-				predicateType.ExpectedAttributes[i] = Constraint{
-					Rule:           replace(replacer, attributeRule.Rule),
-					AllowIfNoClaim: attributeRule.AllowIfNoClaim,
-					Warn:           attributeRule.Warn,
-					Debug:          replace(replacer, attributeRule.Debug),
-				}
+		for i, attributeRule := range step.ExpectedAttributes {
+			step.ExpectedAttributes[i] = Constraint{
+				Rule:           replace(replacer, attributeRule.Rule),
+				AllowIfNoClaim: attributeRule.AllowIfNoClaim,
+				Warn:           attributeRule.Warn,
+				Debug:          replace(replacer, attributeRule.Debug),
 			}
 		}
+
+		// TODO: support expected collectors
+
 	}
 
 	return layout, nil
