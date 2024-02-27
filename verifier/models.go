@@ -26,19 +26,20 @@ type Constraint struct {
 	Debug          string `yaml:"debug"`
 }
 
-type ExpectedStepPredicates struct {
-	PredicateType      string       `yaml:"predicateType"`
+type ExpectedAttestorConstraints struct {
+	AttestorType       string       `yaml:"attestorType"`
 	ExpectedAttributes []Constraint `yaml:"expectedAttributes"`
-	Functionaries      []string     `yaml:"functionaries"`
-	Threshold          int          `yaml:"threshold"`
 }
 
 type Step struct {
-	Name               string                   `yaml:"name"`
-	Command            string                   `yaml:"command"`
-	ExpectedMaterials  []string                 `yaml:"expectedMaterials"`
-	ExpectedProducts   []string                 `yaml:"expectedProducts"`
-	ExpectedPredicates []ExpectedStepPredicates `yaml:"expectedPredicates"`
+	Name                  string                        `yaml:"name"`
+	Functionaries         []string                      `yaml:"functionaries"`
+	Threshold             int                           `yaml:"threshold"`
+	ExpectedPredicateType string                        `yaml:"expectedPredicateType"`
+	ExpectedMaterials     []string                      `yaml:"expectedMaterials"`
+	ExpectedProducts      []string                      `yaml:"expectedProducts"`
+	ExpectedAttributes    []Constraint                  `yaml:"expectedAttributes"`
+	ExpectedAttestors     []ExpectedAttestorConstraints `yaml:"expectedAttestors"`
 }
 
 type ExpectedSubjectPredicates struct {
@@ -85,6 +86,5 @@ func LoadLayout(path string) (*Layout, error) {
 }
 
 type AttestationIdentifier struct {
-	PredicateType string
-	Functionary   string
+	Functionary string
 }
