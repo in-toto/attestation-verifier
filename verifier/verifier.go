@@ -266,6 +266,7 @@ func substituteParameters(layout *Layout, parameters map[string]string) (*Layout
 					Rule:           replace(replacer, attributeRule.Rule),
 					AllowIfNoClaim: attributeRule.AllowIfNoClaim,
 					Warn:           attributeRule.Warn,
+					Debug:          replace(replacer, attributeRule.Debug),
 				}
 			}
 		}

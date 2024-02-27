@@ -23,6 +23,7 @@ type Constraint struct {
 	Rule           string `yaml:"rule"`
 	AllowIfNoClaim bool   `yaml:"allowIfNoClaim"`
 	Warn           bool   `yaml:"warn"`
+	Debug          string `yaml:"debug"`
 }
 
 type ExpectedStepPredicates struct {
