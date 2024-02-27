@@ -12,13 +12,14 @@ import (
 	linkPredicatev0 "github.com/in-toto/attestation/go/predicates/link/v0"
 	provenancePredicatev1 "github.com/in-toto/attestation/go/predicates/provenance/v1"
 	attestationv1 "github.com/in-toto/attestation/go/v1"
+	witnessattestation "github.com/in-toto/go-witness/attestation"
 	"github.com/in-toto/in-toto-golang/in_toto"
 	provenancePredicatev02 "github.com/in-toto/in-toto-golang/in_toto/slsa_provenance/v0.2"
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/protobuf/encoding/protojson"
 )
 
-func applyArtifactRules(statement *attestationv1.Statement, materialRules []string, productRules []string, claims map[string]map[AttestationIdentifier]*attestationv1.Statement) error {
+func applyArtifactRules(statement *attestationv1.Statement, materialRules []string, productRules []string, claims map[string]map[string]*attestationv1.Statement) error {
 	materialsList, productsList, err := getMaterialsAndProducts(statement)
 	if err != nil {
 		return err
@@ -81,7 +82,7 @@ func applyArtifactRules(statement *attestationv1.Statement, materialRules []stri
 		materialsPaths = materialsPaths.Difference(consumed)
 	}
 
-	// I've separated these out on purpose right now
+	// adityasaky: I've separated these out on purpose right now
 	log.Infof("Applying product rules...")
 	for _, r := range productRules {
 		log.Infof("Evaluating rule `%s`...", r)
@@ -216,12 +217,51 @@ func getMaterialsAndProducts(statement *attestationv1.Statement) ([]*attestation
 
 		return materials, statement.Subject, nil
 
+	case witnessattestation.CollectionType:
+		collectionBytes, err := json.Marshal(statement.Predicate)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		collection := &witnessattestation.Collection{}
+		if err := json.Unmarshal(collectionBytes, collection); err != nil {
+			return nil, nil, err
+		}
+
+		collectionMaterials := collection.Materials()
+		materials := make([]*attestationv1.ResourceDescriptor, 0, len(collectionMaterials))
+		for name, digestObj := range collectionMaterials {
+			digest, err := digestObj.ToNameMap()
+			if err != nil {
+				return nil, nil, err
+			}
+			materials = append(materials, &attestationv1.ResourceDescriptor{
+				Name:   name,
+				Digest: digest,
+			})
+		}
+
+		collectionProducts := collection.Subjects()
+		products := make([]*attestationv1.ResourceDescriptor, 0, len(collectionProducts))
+		for name, digestObj := range collectionProducts {
+			digest, err := digestObj.ToNameMap()
+			if err != nil {
+				return nil, nil, err
+			}
+			products = append(products, &attestationv1.ResourceDescriptor{
+				Name:   name,
+				Digest: digest,
+			})
+		}
+
+		return materials, products, nil
+
 	default:
 		return statement.Subject, nil, nil
 	}
 }
 
-func applyMatchRule(rule map[string]string, srcArtifacts map[string]*attestationv1.ResourceDescriptor, queue in_toto.Set, claims map[string]map[AttestationIdentifier]*attestationv1.Statement) in_toto.Set {
+func applyMatchRule(rule map[string]string, srcArtifacts map[string]*attestationv1.ResourceDescriptor, queue in_toto.Set, claims map[string]map[string]*attestationv1.Statement) in_toto.Set {
 	consumed := in_toto.NewSet()
 
 	dstClaims, ok := claims[rule["dstName"]]
@@ -303,7 +343,7 @@ func applyMatchRule(rule map[string]string, srcArtifacts map[string]*attestation
 	return consumed
 }
 
-func getDestinationArtifacts(dstClaims map[AttestationIdentifier]*attestationv1.Statement) (map[string]*attestationv1.ResourceDescriptor, map[string]*attestationv1.ResourceDescriptor, error) {
+func getDestinationArtifacts(dstClaims map[string]*attestationv1.Statement) (map[string]*attestationv1.ResourceDescriptor, map[string]*attestationv1.ResourceDescriptor, error) {
 	materials := map[string]*attestationv1.ResourceDescriptor{}
 	products := map[string]*attestationv1.ResourceDescriptor{}
 

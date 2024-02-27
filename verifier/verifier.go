@@ -2,6 +2,7 @@ package verifier
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"regexp"
@@ -11,10 +12,31 @@ import (
 	"github.com/google/cel-go/cel"
 	"github.com/google/cel-go/interpreter"
 	attestationv1 "github.com/in-toto/attestation/go/v1"
+	witnessattestation "github.com/in-toto/go-witness/attestation"
 	"github.com/secure-systems-lab/go-securesystemslib/dsse"
 	"github.com/secure-systems-lab/go-securesystemslib/signerverifier"
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/protobuf/encoding/protojson"
+
+	// attestors
+	_ "github.com/in-toto/go-witness/attestation/aws-iid"
+	_ "github.com/in-toto/go-witness/attestation/commandrun"
+	_ "github.com/in-toto/go-witness/attestation/environment"
+	_ "github.com/in-toto/go-witness/attestation/gcp-iit"
+	_ "github.com/in-toto/go-witness/attestation/git"
+	_ "github.com/in-toto/go-witness/attestation/github"
+	_ "github.com/in-toto/go-witness/attestation/gitlab"
+	_ "github.com/in-toto/go-witness/attestation/jwt"
+	_ "github.com/in-toto/go-witness/attestation/link"
+	_ "github.com/in-toto/go-witness/attestation/material"
+	_ "github.com/in-toto/go-witness/attestation/maven"
+	_ "github.com/in-toto/go-witness/attestation/oci"
+	_ "github.com/in-toto/go-witness/attestation/policyverify"
+	_ "github.com/in-toto/go-witness/attestation/product"
+	_ "github.com/in-toto/go-witness/attestation/sarif"
+	_ "github.com/in-toto/go-witness/attestation/sbom"
+	_ "github.com/in-toto/go-witness/attestation/slsa"
+	_ "github.com/in-toto/go-witness/attestation/vex"
 )
 
 func Verify(layout *Layout, attestations map[string]*dsse.Envelope, parameters map[string]string) error {
@@ -39,7 +61,7 @@ func Verify(layout *Layout, attestations map[string]*dsse.Envelope, parameters m
 	}
 
 	log.Info("Fetching verifiers...")
-	verifiers, err := getVerifiers(layout.Functionaries)
+	verifiers, err := getEnvelopeVerifiers(layout.Functionaries)
 	if err != nil {
 		return err
 	}
@@ -50,11 +72,13 @@ func Verify(layout *Layout, attestations map[string]*dsse.Envelope, parameters m
 	log.Info("Done.")
 
 	log.Info("Loading attestations as claims...")
-	claims := map[string]map[AttestationIdentifier]*attestationv1.Statement{}
+	claims := map[string]map[string]*attestationv1.Statement{}
 	for attestationName, env := range attestations {
+		log.Infof("Loading %s...", attestationName)
+
 		stepName := getStepName(attestationName)
 		if claims[stepName] == nil {
-			claims[stepName] = map[AttestationIdentifier]*attestationv1.Statement{}
+			claims[stepName] = map[string]*attestationv1.Statement{}
 		}
 
 		acceptedKeys, err := envVerifier.Verify(context.Background(), env)
@@ -75,18 +99,20 @@ func Verify(layout *Layout, attestations map[string]*dsse.Envelope, parameters m
 			continue
 		}
 
+		log.Infof("Verified signature for %s", attestationName)
+
 		sb, err := env.DecodeB64Payload()
 		if err != nil {
-			return err
+			return fmt.Errorf("unable to decode base64-encoded payload: %w", err)
 		}
 
 		statement := &attestationv1.Statement{}
 		if err := protojson.Unmarshal(sb, statement); err != nil {
-			return err
+			return fmt.Errorf("unable to load statement payload: %w", err)
 		}
 
 		for _, ak := range acceptedKeys {
-			claims[stepName][AttestationIdentifier{Functionary: ak.KeyID, PredicateType: statement.PredicateType}] = statement
+			claims[stepName][ak.KeyID] = statement
 		}
 	}
 	log.Info("Done.")
@@ -102,47 +128,102 @@ func Verify(layout *Layout, attestations map[string]*dsse.Envelope, parameters m
 			return fmt.Errorf("no claims found for step %s", step.Name)
 		}
 
-		for _, expectedPredicate := range step.ExpectedPredicates {
-			if expectedPredicate.Threshold == 0 {
-				expectedPredicate.Threshold = 1
+		if step.Threshold == 0 {
+			step.Threshold = 1
+		}
+
+		trustedStatements := getPredicates(stepStatements, step.Functionaries)
+		if len(trustedStatements) < step.Threshold {
+			return fmt.Errorf("threshold not met for step %s", step.Name)
+		}
+
+		// TODO: reduce statements if they're identical to avoid checking all of
+		// them
+		// See in-toto 1.0
+
+		acceptedPredicates := 0
+		failedChecks := []error{}
+		for functionary, statement := range trustedStatements {
+			log.Infof("Verifying claim for step '%s' of type '%s' by '%s'...", step.Name, step.ExpectedPredicateType, functionary)
+			failed := false
+
+			// Check the predicate type matches the expected value in the layout
+			if step.ExpectedPredicateType != statement.PredicateType {
+				failed = true
+				failedChecks = append(failedChecks, fmt.Errorf("for step %s, statement with unexpected predicate type %s found", step.Name, statement.PredicateType))
 			}
 
-			matchedPredicates := getPredicates(stepStatements, expectedPredicate.PredicateType, expectedPredicate.Functionaries)
-			if len(matchedPredicates) < expectedPredicate.Threshold {
-				return fmt.Errorf("threshold not met for step %s", step.Name)
+			// Check materials and products
+			if err := applyArtifactRules(statement, step.ExpectedMaterials, step.ExpectedProducts, claims); err != nil {
+				failed = true
+				failedChecks = append(failedChecks, fmt.Errorf("for step %s, claim by %s failed artifact rules: %w", step.Name, functionary, err))
 			}
 
-			failedChecks := []error{}
-			acceptedPredicates := 0
-			for functionary, statement := range matchedPredicates {
-				log.Infof("Verifying claim for step '%s' of type '%s' by '%s'...", step.Name, expectedPredicate.PredicateType, functionary)
-				failed := false
+			input, err := getActivation(statement)
+			if err != nil {
+				return err
+			}
 
-				if err := applyArtifactRules(statement, step.ExpectedMaterials, step.ExpectedProducts, claims); err != nil {
-					failed = true
-					failedChecks = append(failedChecks, fmt.Errorf("for step %s, claim by %s failed artifact rules: %w", step.Name, functionary, err))
-				}
+			// Check attribute rules
+			if err := applyAttributeRules(env, input, step.ExpectedAttributes); err != nil {
+				failed = true
+				failedChecks = append(failedChecks, fmt.Errorf("for step %s, claim by %s failed attribute rules: %w", step.Name, functionary, err))
+			}
 
-				input, err := getActivation(statement)
+			// Examine collector claims in attestation collection
+			if step.ExpectedPredicateType == witnessattestation.CollectionType {
+				log.Infof("Verifying attestors for collection of step '%s'", step.Name)
+				collectionBytes, err := json.Marshal(statement.Predicate)
 				if err != nil {
 					return err
 				}
 
-				if err := applyAttributeRules(env, input, expectedPredicate.ExpectedAttributes); err != nil {
-					failed = true
-					failedChecks = append(failedChecks, fmt.Errorf("for step %s, claim by %s failed attribute rules: %w", step.Name, functionary, err))
+				collection := &witnessattestation.Collection{}
+				if err := json.Unmarshal(collectionBytes, collection); err != nil {
+					return err
+				}
+				log.Infof("Unmarshaled collection for step '%s'", step.Name)
+
+				// TODO: assumes only one of each attestor type
+				subAttestors := make(map[string]witnessattestation.CollectionAttestation, len(collection.Attestations))
+				for _, subAttestor := range collection.Attestations {
+					subAttestors[subAttestor.Type] = subAttestor
 				}
 
-				if failed {
-					log.Infof("Claim for step %s of type %s by %s failed.", step.Name, expectedPredicate.PredicateType, functionary)
-				} else {
-					acceptedPredicates += 1
-					log.Info("Done.")
+				env, err := getCollectionCELEnv()
+				if err != nil {
+					return err
+				}
+
+				for _, attestorConstraint := range step.ExpectedAttestors {
+					attestor, ok := subAttestors[attestorConstraint.AttestorType]
+					if !ok {
+						failed = true
+						failedChecks = append(failedChecks, fmt.Errorf("for step %s, attestor of type %s not found in collection", step.Name, attestorConstraint.AttestorType))
+						continue
+					}
+
+					input, err := getCollectionActivation(&attestor)
+					if err != nil {
+						return err
+					}
+
+					if err := applyAttributeRules(env, input, attestorConstraint.ExpectedAttributes); err != nil {
+						failed = true
+						failedChecks = append(failedChecks, fmt.Errorf("for step %s, claim by %s failed attribute rules for attestor %s: %w", step.Name, functionary, attestorConstraint.AttestorType, err))
+					}
 				}
 			}
-			if acceptedPredicates < expectedPredicate.Threshold {
-				return errors.Join(failedChecks...)
+
+			if failed {
+				log.Infof("Claim for step %s of type %s by %s failed.", step.Name, step.ExpectedPredicateType, functionary)
+			} else {
+				acceptedPredicates += 1
+				log.Info("Done.")
 			}
+		}
+		if acceptedPredicates < step.Threshold {
+			return errors.Join(failedChecks...)
 		}
 	}
 
@@ -151,7 +232,7 @@ func Verify(layout *Layout, attestations map[string]*dsse.Envelope, parameters m
 	return nil
 }
 
-func getVerifiers(publicKeys map[string]Functionary) ([]dsse.Verifier, error) {
+func getEnvelopeVerifiers(publicKeys map[string]Functionary) ([]dsse.Verifier, error) {
 	verifiers := []dsse.Verifier{}
 
 	for _, key := range publicKeys {
@@ -194,11 +275,11 @@ func getVerifiers(publicKeys map[string]Functionary) ([]dsse.Verifier, error) {
 	return verifiers, nil
 }
 
-func getPredicates(statements map[AttestationIdentifier]*attestationv1.Statement, predicateType string, functionaries []string) map[string]*attestationv1.Statement {
+func getPredicates(statements map[string]*attestationv1.Statement, functionaries []string) map[string]*attestationv1.Statement {
 	matchedPredicates := map[string]*attestationv1.Statement{}
 
 	for _, keyID := range functionaries {
-		statement, ok := statements[AttestationIdentifier{PredicateType: predicateType, Functionary: keyID}]
+		statement, ok := statements[keyID]
 		if ok {
 			matchedPredicates[keyID] = statement
 		}
@@ -216,12 +297,38 @@ func getCELEnv() (*cel.Env, error) {
 	)
 }
 
+func getCollectionCELEnv() (*cel.Env, error) {
+	return cel.NewEnv(
+		// cel.Variable("type", cel.StringType),
+		cel.Variable("attestation", cel.ObjectType("google.protobuf.Struct")),
+		cel.Variable("startTime", cel.TimestampType),
+		cel.Variable("endTime", cel.TimestampType),
+	)
+}
+
 func getActivation(statement *attestationv1.Statement) (interpreter.Activation, error) {
 	return interpreter.NewActivation(map[string]any{
 		"type":          statement.Type,
 		"subject":       statement.Subject,
 		"predicateType": statement.PredicateType,
 		"predicate":     statement.Predicate,
+	})
+}
+
+func getCollectionActivation(collection *witnessattestation.CollectionAttestation) (interpreter.Activation, error) {
+	attestationBytes, err := json.Marshal(collection.Attestation)
+	if err != nil {
+		return nil, err
+	}
+	attestation := map[string]any{}
+	if err := json.Unmarshal(attestationBytes, &attestation); err != nil {
+		return nil, err
+	}
+
+	return interpreter.NewActivation(map[string]any{
+		"attestation": attestation,
+		"startTime":   collection.StartTime,
+		"endTime":     collection.EndTime,
 	})
 }
 
@@ -260,9 +367,18 @@ func substituteParameters(layout *Layout, parameters map[string]string) (*Layout
 			step.ExpectedProducts[i] = replace(replacer, productRule)
 		}
 
-		for _, predicateType := range step.ExpectedPredicates {
-			for i, attributeRule := range predicateType.ExpectedAttributes {
-				predicateType.ExpectedAttributes[i] = Constraint{
+		for i, attributeRule := range step.ExpectedAttributes {
+			step.ExpectedAttributes[i] = Constraint{
+				Rule:           replace(replacer, attributeRule.Rule),
+				AllowIfNoClaim: attributeRule.AllowIfNoClaim,
+				Warn:           attributeRule.Warn,
+				Debug:          replace(replacer, attributeRule.Debug),
+			}
+		}
+
+		for _, attestorConstraint := range step.ExpectedAttestors {
+			for j, attributeRule := range attestorConstraint.ExpectedAttributes {
+				attestorConstraint.ExpectedAttributes[j] = Constraint{
 					Rule:           replace(replacer, attributeRule.Rule),
 					AllowIfNoClaim: attributeRule.AllowIfNoClaim,
 					Warn:           attributeRule.Warn,
