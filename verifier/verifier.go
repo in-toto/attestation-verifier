@@ -2,6 +2,7 @@ package verifier
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"regexp"
@@ -147,7 +148,45 @@ func Verify(layout *Layout, attestations map[string]*dsse.Envelope, parameters m
 
 			// Examine collector claims in attestation collection
 			if step.ExpectedPredicateType == witnessattestation.CollectionType {
-				// TODO: support expected collector bits
+				collectionBytes, err := json.Marshal(statement.Predicate)
+				if err != nil {
+					return err
+				}
+
+				collection := &witnessattestation.Collection{}
+				if err := json.Unmarshal(collectionBytes, collection); err != nil {
+					return err
+				}
+
+				// TODO: assumes only one of each attestor type
+				subAttestors := make(map[string]witnessattestation.CollectionAttestation, len(collection.Attestations))
+				for _, subAttestor := range collection.Attestations {
+					subAttestors[subAttestor.Type] = subAttestor
+				}
+
+				env, err := getCollectionCELEnv()
+				if err != nil {
+					return err
+				}
+
+				for _, attestorConstraint := range step.ExpectedAttestors {
+					attestor, ok := subAttestors[attestorConstraint.AttestorType]
+					if !ok {
+						failed = true
+						failedChecks = append(failedChecks, fmt.Errorf("for step %s, attestor of type %s not found in collection", step.Name, attestorConstraint.AttestorType))
+						continue
+					}
+
+					input, err := getCollectionActivation(&attestor)
+					if err != nil {
+						return err
+					}
+
+					if err := applyAttributeRules(env, input, attestorConstraint.ExpectedAttributes); err != nil {
+						failed = true
+						failedChecks = append(failedChecks, fmt.Errorf("for step %s, claim by %s failed attribute rules for attestor %s: %w", step.Name, functionary, attestorConstraint.AttestorType, err))
+					}
+				}
 			}
 
 			if failed {
@@ -232,12 +271,31 @@ func getCELEnv() (*cel.Env, error) {
 	)
 }
 
+func getCollectionCELEnv() (*cel.Env, error) {
+	return cel.NewEnv(
+		cel.Types(&witnessattestation.CollectionAttestation{}),
+		cel.Variable("type", cel.StringType),
+		cel.Variable("attestation", cel.ObjectType("google.protobuf.Struct")),
+		cel.Variable("startTime", cel.TimestampType),
+		cel.Variable("endTime", cel.TimestampType),
+	)
+}
+
 func getActivation(statement *attestationv1.Statement) (interpreter.Activation, error) {
 	return interpreter.NewActivation(map[string]any{
 		"type":          statement.Type,
 		"subject":       statement.Subject,
 		"predicateType": statement.PredicateType,
 		"predicate":     statement.Predicate,
+	})
+}
+
+func getCollectionActivation(collection *witnessattestation.CollectionAttestation) (interpreter.Activation, error) {
+	return interpreter.NewActivation(map[string]any{
+		"type":        collection.Type,
+		"attestation": collection.Attestation,
+		"startTime":   collection.StartTime,
+		"endTime":     collection.EndTime,
 	})
 }
 
