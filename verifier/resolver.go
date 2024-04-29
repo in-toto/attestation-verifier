@@ -27,15 +27,9 @@ func addResourceDescriptorResolver(env *cel.Env) (*cel.Env, error) {
 				[]*cel.Type{cel.ObjectType("google.protobuf.Struct")},
 				cel.StringType,
 				cel.UnaryBinding(func(pbStruct ref.Val) ref.Val {
-					rd, err := pbStructToRD(pbStruct.Value().(*structpb.Struct))
+					st, err := getDSSEStatementPayload(pbStruct.Value().(*structpb.Struct))
 					if err != nil {
-						log.Infof("Conversion from structpb.Struct failed: %s", err)
-						return types.String("")
-					}
-
-					st, err := resolveResourceDescriptor(rd)
-					if err != nil {
-						log.Infof("RD resolver failed: %s", err)
+						log.Infof("get_attestation failed: %s", err)
 						return types.String("")
 					}
 
@@ -69,7 +63,13 @@ func pbStructToRD(s *structpb.Struct) (*attestationv1.ResourceDescriptor, error)
 	return rd, nil
 }
 
-func resolveResourceDescriptor(rd *attestationv1.ResourceDescriptor) (*attestationv1.Statement, error) {
+func resolveResourceDescriptor(s *structpb.Struct, expectedType string) (bytes, error) {
+	rd, err := pbStructToRD(s)
+	if err != nil {
+		log.Infof("Conversion from structpb.Struct failed: %s", err)
+		return nil, err
+	}
+
 	// FIXME: don't assume the full filepath is described in the RD name field
 	name := rd.GetName()
 
@@ -90,23 +90,28 @@ func resolveResourceDescriptor(rd *attestationv1.ResourceDescriptor) (*attestati
 		log.Info("File resource integrity verified.")
 	}
 
-	if rd.GetMediaType() == "application/vnd.in-toto+dsse" {
-		// TODO: check envelope signature
-
-		// now, let's get the Statement
-		envelope := &dsse.Envelope{}
-		if err := json.Unmarshal(fileBytes, envelope); err != nil {
-			return nil, err
-		}
-
-		return getStatementDSSEPayload(envelope)
-	} else {
-		return nil, fmt.Errorf("media type not supported: %s", rd.GetMediaType())
+	if rd.GetMediaType() != expectedType {
+		return nil, fmt.Errorf("resolved rd mediaType does not match expected type")
 	}
+
+	return fileBytes, nil
 }
 
 // copied from https://github.com/in-toto/scai-demos/blob/main/scai-gen/cmd/check.go
-func getStatementDSSEPayload(envelope *dsse.Envelope) (*attestationv1.Statement, error) {
+func getDSSEStatementPayload(s *structpb.Struct) (*attestationv1.Statement, error) {
+	envBytes, err := resolveResourceDescriptor(s, "application/vnd.in-toto+dsse")
+	if err != nil {
+		return nil, fmt.Errorf("resolver failed: %w", err)
+	}
+
+	// TODO: check envelope signature
+
+	// now, let's get the Statement
+	envelope := &dsse.Envelope{}
+	if err := json.Unmarshal(envBytes, envelope); err != nil {
+		return nil, err
+	}
+
 	stBytes, err := envelope.DecodeB64Payload()
 	if err != nil {
 		return nil, fmt.Errorf("failed to decode DSSE payload: %w", err)
@@ -125,6 +130,13 @@ func getStatementDSSEPayload(envelope *dsse.Envelope) (*attestationv1.Statement,
 	*/
 
 	return statement, nil
+}
+
+func getJsonData() {
+	mediaType, envBytes, err := resolveResourceDescriptor(s, "application/json")
+	if err != nil {
+		return nil, fmt.Errorf("resolver failed: %w", err)
+	}
 }
 
 // copied from https://github.com/in-toto/scai-demos/blob/main/scai-gen/policy/checks.go
