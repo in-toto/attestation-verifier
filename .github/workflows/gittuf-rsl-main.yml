@@ -33,9 +33,11 @@ jobs:
           git config --global user.name "${{ github.workflow }}"
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          echo "$KEY" > /tmp/key
+          gittuf_key_path="/tmp/gittuf-key"
+
+          echo "$KEY" > $gittuf_key_path
 
           git fetch origin refs/gittuf/reference-state-log:refs/gittuf/reference-state-log refs/gittuf/attestations:refs/gittuf/attestations
-          GITTUF_DEV=1 gittuf dev attest-github --signing-key /tmp/key --repository ${{ github.repository }} --commit ${{ github.sha }} --base-branch "main"
+          GITTUF_DEV=1 gittuf dev attest-github --signing-key $gittuf_key_path --repository ${{ github.repository }} --commit ${{ github.sha }} --base-branch "main"
           gittuf rsl record main
           git push origin refs/gittuf/reference-state-log:refs/gittuf/reference-state-log refs/gittuf/attestations:refs/gittuf/attestations
