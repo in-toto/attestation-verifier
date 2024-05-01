@@ -5,6 +5,7 @@ on:
       - 'main'
 jobs:
   create-rsl-entry:
+    if: github.repository == 'in-toto/attestation-verifier'
     runs-on: ubuntu-latest
     permissions:
       contents: write
