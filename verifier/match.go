@@ -205,23 +205,21 @@ func matchChunk(chunk, s string) (rest string, ok bool, err error) {
 // getEsc gets a possibly-escaped character from chunk, for a character class.
 func getEsc(chunk string) (r rune, nchunk string, err error) {
 	if len(chunk) == 0 || chunk[0] == '-' || chunk[0] == ']' {
-		err = errBadPattern
-		return
+		return 0, "", errBadPattern
 	}
 	if chunk[0] == '\\' {
 		chunk = chunk[1:]
 		if len(chunk) == 0 {
-			err = errBadPattern
-			return
+			return 0, "", errBadPattern
 		}
 	}
 	r, n := utf8.DecodeRuneInString(chunk)
 	if r == utf8.RuneError && n == 1 {
-		err = errBadPattern
+		return 0, "", errBadPattern
 	}
 	nchunk = chunk[n:]
 	if len(nchunk) == 0 {
-		err = errBadPattern
+		return 0, "", errBadPattern
 	}
-	return
+	return r, nchunk, nil
 }
