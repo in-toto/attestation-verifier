@@ -3,7 +3,6 @@ package utils
 import (
 	"bytes"
 	"encoding/json"
-	"slices"
 	"strings"
 
 	model "github.com/guacsec/guac/pkg/assembler/clients/generated"
@@ -81,11 +80,11 @@ func ParseMap(input map[string]interface{}) map[string]interface{} {
 	for key, value := range input {
 		switch value := value.(type) {
 		case map[string]interface{}:
-			if slices.Contains([]string{"resolvedDependencies", "byproducts", "builderDependencies", "materials"}, key) {
+			if _, ok := value["0"]; ok {
 				output[key] = convertSlice(value)
-			} else {
-				output[key] = ParseMap(value)
+				return output
 			}
+			output[key] = ParseMap(value)
 		default:
 			output[key] = value
 		}

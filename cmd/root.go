@@ -84,6 +84,7 @@ func verify(cmd *cobra.Command, args []string) error {
 
 	if purl != "" {
 		utils.GetAttestationFromPURL(purl, graphqlEndpoint)
+		return nil
 	} else if attestationsDir != "" {
 		dirEntries, err := os.ReadDir(attestationsDir)
 		if err != nil {
