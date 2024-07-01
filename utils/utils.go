@@ -18,7 +18,7 @@ type neighbors struct {
 	hasSLSAs    []*model.NeighborsNeighborsHasSLSA
 }
 
-func GetAttestationFromPURL(purl, graphqlEndpoint string) *[]attestationv1.Statement {
+func GetAttestationFromPURL(purl, graphqlEndpoint string) []*attestationv1.Statement {
 	ctx := context.Background()
 	httpClient := http.Client{Transport: cli.HTTPHeaderTransport(ctx, "", http.DefaultTransport)}
 	gqlclient := graphql.NewClient(graphqlEndpoint, &httpClient)
@@ -58,13 +58,13 @@ func GetAttestationFromPURL(purl, graphqlEndpoint string) *[]attestationv1.State
 		log.Fatalf("error querying for package name neighbors: %v", err)
 	}
 
-	statements := make([]attestationv1.Statement, 0)
+	statements := make([]*attestationv1.Statement, 0)
 
 	sta, err := getAttestation(ctx, gqlclient, pkgNameNeighbors)
 	if err != nil {
 		log.Fatalf("error occured while collecting attestations, %+v", err)
 	}
-	statements = append(statements, *sta...)
+	statements = append(statements, sta...)
 
 	pkgVersionNeighbors, _, err := queryKnownNeighbors(ctx, gqlclient, pkgResponse.Packages[0].Namespaces[0].Names[0].Versions[0].Id)
 	if err != nil {
@@ -75,13 +75,13 @@ func GetAttestationFromPURL(purl, graphqlEndpoint string) *[]attestationv1.State
 	if err != nil {
 		log.Fatalf("Error occured while collecting attestations, %+v", err)
 	}
-	statements = append(statements, *sta...)
+	statements = append(statements, sta...)
 
-	for _, sta := range statements {
-		log.Printf("\nAttestaion: %+v\n", sta)
+	for i := range statements {
+		log.Printf("\nAttestaion: %+v\n", statements[i])
 	}
 
-	return &statements
+	return statements
 }
 
 func queryKnownNeighbors(ctx context.Context, gqlclient graphql.Client, subjectQueryID string) (*neighbors, []string, error) {
@@ -106,8 +106,8 @@ func queryKnownNeighbors(ctx context.Context, gqlclient graphql.Client, subjectQ
 	return collectedNeighbors, path, nil
 }
 
-func getAttestation(ctx context.Context, gqlclient graphql.Client, collectedNeighbors *neighbors) (*[]attestationv1.Statement, error) {
-	statements := make([]attestationv1.Statement, 0)
+func getAttestation(ctx context.Context, gqlclient graphql.Client, collectedNeighbors *neighbors) ([]*attestationv1.Statement, error) {
+	statements := make([]*attestationv1.Statement, 0)
 
 	if len(collectedNeighbors.hasSLSAs) > 0 {
 		for _, slsa := range collectedNeighbors.hasSLSAs {
@@ -115,7 +115,7 @@ func getAttestation(ctx context.Context, gqlclient graphql.Client, collectedNeig
 			if err != nil {
 				return nil, err
 			}
-			statements = append(statements, *sta)
+			statements = append(statements, sta)
 		}
 	} else {
 		for _, occurrence := range collectedNeighbors.occurrences {
@@ -144,10 +144,10 @@ func getAttestation(ctx context.Context, gqlclient graphql.Client, collectedNeig
 					if err != nil {
 						return nil, err
 					}
-					statements = append(statements, *sta)
+					statements = append(statements, sta)
 				}
 			}
 		}
 	}
-	return &statements, nil
+	return statements, nil
 }

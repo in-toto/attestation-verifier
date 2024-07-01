@@ -56,7 +56,7 @@ func ParseSlsaAttestation(slsa *model.NeighborsNeighborsHasSLSA) (*attestationv1
 		"predicate":     resultPred["slsa"],
 	}
 
-	jsonData, err := json.MarshalIndent(data, " ", "  ")
+	jsonData, err := json.Marshal(data)
 	if err != nil {
 		return nil, err
 	}
