@@ -2,6 +2,7 @@ package utils
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -16,6 +17,7 @@ import (
 type neighbors struct {
 	occurrences []*model.NeighborsNeighborsIsOccurrence
 	hasSLSAs    []*model.NeighborsNeighborsHasSLSA
+	hasSBOMs    []*model.NeighborsNeighborsHasSBOM
 }
 
 func GetAttestationFromPURL(purl, graphqlEndpoint string) []*attestationv1.Statement {
@@ -53,7 +55,7 @@ func GetAttestationFromPURL(purl, graphqlEndpoint string) []*attestationv1.State
 		log.Fatalf("failed to located package based on purl")
 	}
 
-	pkgNameNeighbors, _, err := queryKnownNeighbors(ctx, gqlclient, pkgResponse.Packages[0].Namespaces[0].Names[0].Id)
+	pkgNameNeighbors, err := queryKnownNeighbors(ctx, gqlclient, pkgResponse.Packages[0].Namespaces[0].Names[0].Id)
 	if err != nil {
 		log.Fatalf("error querying for package name neighbors: %v", err)
 	}
@@ -66,7 +68,7 @@ func GetAttestationFromPURL(purl, graphqlEndpoint string) []*attestationv1.State
 	}
 	statements = append(statements, sta...)
 
-	pkgVersionNeighbors, _, err := queryKnownNeighbors(ctx, gqlclient, pkgResponse.Packages[0].Namespaces[0].Names[0].Versions[0].Id)
+	pkgVersionNeighbors, err := queryKnownNeighbors(ctx, gqlclient, pkgResponse.Packages[0].Namespaces[0].Names[0].Versions[0].Id)
 	if err != nil {
 		log.Fatalf("error querying for package version neighbors: %v", err)
 	}
@@ -84,30 +86,34 @@ func GetAttestationFromPURL(purl, graphqlEndpoint string) []*attestationv1.State
 	return statements
 }
 
-func queryKnownNeighbors(ctx context.Context, gqlclient graphql.Client, subjectQueryID string) (*neighbors, []string, error) {
+func queryKnownNeighbors(ctx context.Context, gqlclient graphql.Client, subjectQueryID string) (*neighbors, error) {
 	collectedNeighbors := &neighbors{}
-	var path []string
 	neighborResponse, err := model.Neighbors(ctx, gqlclient, subjectQueryID, []model.Edge{})
 	if err != nil {
-		return nil, nil, fmt.Errorf("error querying neighbors: %v", err)
+		return nil, fmt.Errorf("error querying neighbors: %v", err)
 	}
 	for _, neighbor := range neighborResponse.Neighbors {
 		switch v := neighbor.(type) {
 		case *model.NeighborsNeighborsHasSLSA:
 			collectedNeighbors.hasSLSAs = append(collectedNeighbors.hasSLSAs, v)
-			path = append(path, v.Id)
 		case *model.NeighborsNeighborsIsOccurrence:
 			collectedNeighbors.occurrences = append(collectedNeighbors.occurrences, v)
-			path = append(path, v.Id)
+		case *model.NeighborsNeighborsHasSBOM:
+			collectedNeighbors.hasSBOMs = append(collectedNeighbors.hasSBOMs, v)
 		default:
 			continue
 		}
 	}
-	return collectedNeighbors, path, nil
+	return collectedNeighbors, nil
 }
 
 func getAttestation(ctx context.Context, gqlclient graphql.Client, collectedNeighbors *neighbors) ([]*attestationv1.Statement, error) {
 	statements := make([]*attestationv1.Statement, 0)
+
+	for _, sbom := range collectedNeighbors.hasSBOMs {
+		js, _ := json.Marshal(sbom)
+		log.Printf("\n\nSBOM: %+v\n\n", string(js))
+	}
 
 	if len(collectedNeighbors.hasSLSAs) > 0 {
 		for _, slsa := range collectedNeighbors.hasSLSAs {

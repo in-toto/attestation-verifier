@@ -65,9 +65,6 @@ func ParseSlsaAttestation(slsa *model.NeighborsNeighborsHasSLSA) (*attestationv1
 	jsonData = bytes.ReplaceAll(jsonData, []byte(`"true"`), []byte(`true`))
 	jsonData = bytes.ReplaceAll(jsonData, []byte(`"false"`), []byte(`false`))
 
-	// Convert "<nil>" to null in json. Required for externalParameters field which currenty don't have `omitempty` tag
-	jsonData = bytes.ReplaceAll(jsonData, []byte(`"\u003cnil\u003e"`), []byte(`null`))
-
 	if err := protojson.Unmarshal(jsonData, s); err != nil {
 		return nil, err
 	}
