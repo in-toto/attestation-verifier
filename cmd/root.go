@@ -90,7 +90,7 @@ func verify(cmd *cobra.Command, args []string) error {
 		if err != nil {
 			return err
 		}
-	
+
 		attestations := map[string]*dsse.Envelope{}
 		for _, e := range dirEntries {
 			name := e.Name()

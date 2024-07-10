@@ -2,7 +2,6 @@ package utils
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -52,7 +51,7 @@ func GetAttestationFromPURL(purl, graphqlEndpoint string) []*attestationv1.State
 		log.Fatalf("error querying for package: %v", err)
 	}
 	if len(pkgResponse.Packages) != 1 {
-		log.Fatalf("failed to located package based on purl")
+		log.Fatalf("failed to locate the package based on purl")
 	}
 
 	pkgNameNeighbors, err := queryKnownNeighbors(ctx, gqlclient, pkgResponse.Packages[0].Namespaces[0].Names[0].Id)
@@ -111,8 +110,11 @@ func getAttestation(ctx context.Context, gqlclient graphql.Client, collectedNeig
 	statements := make([]*attestationv1.Statement, 0)
 
 	for _, sbom := range collectedNeighbors.hasSBOMs {
-		js, _ := json.Marshal(sbom)
-		log.Printf("\n\nSBOM: %+v\n\n", string(js))
+		sta, err := ParseSbomAttestation(sbom)
+		if err != nil {
+			return nil, err
+		}
+		statements = append(statements, sta)
 	}
 
 	if len(collectedNeighbors.hasSLSAs) > 0 {

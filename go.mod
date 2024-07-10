@@ -5,6 +5,7 @@ go 1.21.8
 toolchain go1.22.3
 
 require (
+	github.com/CycloneDX/cyclonedx-go v0.9.0
 	github.com/Khan/genqlient v0.7.0
 	github.com/google/cel-go v0.20.1
 	github.com/guacsec/guac v0.7.2
@@ -12,6 +13,7 @@ require (
 	github.com/in-toto/in-toto-golang v0.9.0
 	github.com/secure-systems-lab/go-securesystemslib v0.8.0
 	github.com/sirupsen/logrus v1.9.3
+	github.com/spdx/tools-golang v0.5.5
 	github.com/spf13/cobra v1.8.1
 	google.golang.org/protobuf v1.34.2
 	gopkg.in/yaml.v3 v3.0.1
@@ -19,6 +21,7 @@ require (
 
 require (
 	github.com/ProtonMail/gluon v0.17.0 // indirect
+	github.com/anchore/go-struct-converter v0.0.0-20230627203149-c72ef8859ca9 // indirect
 	github.com/antlr4-go/antlr/v4 v4.13.0 // indirect
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
