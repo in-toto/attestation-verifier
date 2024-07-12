@@ -14,12 +14,14 @@ import (
 )
 
 type neighbors struct {
-	occurrences []*model.NeighborsNeighborsIsOccurrence
-	hasSLSAs    []*model.NeighborsNeighborsHasSLSA
-	hasSBOMs    []*model.NeighborsNeighborsHasSBOM
+	occurrences  []*model.NeighborsNeighborsIsOccurrence
+	hasSLSAs     []*model.NeighborsNeighborsHasSLSA
+	hasSBOMs     []*model.NeighborsNeighborsHasSBOM
 }
 
 func GetAttestationFromPURL(purl, graphqlEndpoint string) []*attestationv1.Statement {
+	statements := make([]*attestationv1.Statement, 0)
+	
 	ctx := context.Background()
 	httpClient := http.Client{Transport: cli.HTTPHeaderTransport(ctx, "", http.DefaultTransport)}
 	gqlclient := graphql.NewClient(graphqlEndpoint, &httpClient)
@@ -59,8 +61,6 @@ func GetAttestationFromPURL(purl, graphqlEndpoint string) []*attestationv1.State
 		log.Fatalf("error querying for package name neighbors: %v", err)
 	}
 
-	statements := make([]*attestationv1.Statement, 0)
-
 	sta, err := getAttestation(ctx, gqlclient, pkgNameNeighbors)
 	if err != nil {
 		log.Fatalf("error occured while collecting attestations, %+v", err)
@@ -87,7 +87,7 @@ func GetAttestationFromPURL(purl, graphqlEndpoint string) []*attestationv1.State
 
 func queryKnownNeighbors(ctx context.Context, gqlclient graphql.Client, subjectQueryID string) (*neighbors, error) {
 	collectedNeighbors := &neighbors{}
-	neighborResponse, err := model.Neighbors(ctx, gqlclient, subjectQueryID, []model.Edge{})
+	neighborResponse, err := model.Neighbors(ctx, gqlclient, subjectQueryID, []model.Edge{model.EdgePackageHasSbom, model.EdgeHasSlsaSubject, model.EdgePackageIsOccurrence})
 	if err != nil {
 		return nil, fmt.Errorf("error querying neighbors: %v", err)
 	}
@@ -117,6 +117,34 @@ func getAttestation(ctx context.Context, gqlclient graphql.Client, collectedNeig
 		statements = append(statements, sta)
 	}
 
+	if len(collectedNeighbors.hasSBOMs) > 0 {
+		for _, sbom := range collectedNeighbors.hasSBOMs {
+			sta, err := ParseSbomAttestation(sbom)
+			if err != nil {
+				return nil, err
+			}
+			statements = append(statements, sta)
+		}
+	} else {
+		// if there is an isOccurrence, check to see if there are sbom associated with it
+		for _, occurrence := range collectedNeighbors.occurrences {
+			neighborResponseHasSBOM, err := getAssociatedPackage(ctx, gqlclient, occurrence, model.EdgeArtifactHasSbom)
+			if err != nil {
+				log.Fatalf("error querying neighbors: %v", err)
+			} else {
+				for _, neighborHasSBOM := range neighborResponseHasSBOM.Neighbors {
+					if hasSBOM, ok := neighborHasSBOM.(*model.NeighborsNeighborsHasSBOM); ok {
+						sta, err := ParseSbomAttestation(hasSBOM)
+						if err != nil {
+							return nil, err
+						}
+						statements = append(statements, sta)
+					}
+				}
+			}
+		}
+	}
+
 	if len(collectedNeighbors.hasSLSAs) > 0 {
 		for _, slsa := range collectedNeighbors.hasSLSAs {
 			sta, err := ParseSlsaAttestation(slsa)
@@ -127,20 +155,7 @@ func getAttestation(ctx context.Context, gqlclient graphql.Client, collectedNeig
 		}
 	} else {
 		for _, occurrence := range collectedNeighbors.occurrences {
-			artifactFilter := &model.ArtifactSpec{
-				Algorithm: &occurrence.Artifact.Algorithm,
-				Digest:    &occurrence.Artifact.Digest,
-			}
-			artifactResponse, err := model.Artifacts(ctx, gqlclient, *artifactFilter)
-			if err != nil {
-				log.Printf("error querying for artifacts: %v", err)
-				return nil, err
-			}
-			if len(artifactResponse.Artifacts) != 1 {
-				log.Printf("failed to located artifacts based on (algorithm:digest)")
-				return nil, err
-			}
-			neighborResponseHasSLSA, err := model.Neighbors(ctx, gqlclient, artifactResponse.Artifacts[0].Id, []model.Edge{model.EdgeArtifactHasSlsa})
+			neighborResponseHasSLSA, err := getAssociatedPackage(ctx, gqlclient, occurrence, model.EdgeArtifactHasSlsa)
 			if err != nil {
 				log.Printf("error querying neighbors: %v", err)
 				return nil, err
@@ -158,4 +173,19 @@ func getAttestation(ctx context.Context, gqlclient graphql.Client, collectedNeig
 		}
 	}
 	return statements, nil
+}
+
+func getAssociatedPackage(ctx context.Context, gqlclient graphql.Client, occurrence *model.NeighborsNeighborsIsOccurrence, edge model.Edge) (*model.NeighborsResponse, error) {
+	artifactFilter := &model.ArtifactSpec{
+		Algorithm: &occurrence.Artifact.Algorithm,
+		Digest:    &occurrence.Artifact.Digest,
+	}
+	artifactResponse, err := model.Artifacts(ctx, gqlclient, *artifactFilter)
+	if err != nil {
+		log.Fatalf("error querying for artifacts: %v", err)
+	}
+	if len(artifactResponse.Artifacts) != 1 {
+		log.Fatalf("failed to located artifacts based on (algorithm:digest)")
+	}
+	return model.Neighbors(ctx, gqlclient, artifactResponse.Artifacts[0].Id, []model.Edge{edge})
 }

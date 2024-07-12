@@ -19,6 +19,8 @@ type SbomSubject struct {
 	Typename   *string                                      `json:"__typename"`
 	Id         string                                       `json:"id"`
 	Type       string                                       `json:"type"`
+	Algorithm  string                                       `json:"algorithm"`
+	Digest     string                                       `json:"digest"`
 	Namespaces []model.AllPkgTreeNamespacesPackageNamespace `json:"namespaces"`
 }
 
@@ -39,9 +41,13 @@ func ParseSbomAttestation(sbom *model.NeighborsNeighborsHasSBOM) (*attestationv1
 		s.PredicateType = in_toto.PredicateSPDX
 	}
 
+	subName := ""
+	if *sbom.Subject.GetTypename() == "Package" {
+		subName = subject.Namespaces[0].Names[0].Name
+	}
 	s.Subject = []*attestationv1.ResourceDescriptor{
 		{
-			Name: subject.Namespaces[0].Names[0].Name,
+			Name: subName,
 			Uri:  sbom.Uri,
 		},
 	}
@@ -68,6 +74,8 @@ func getSpdxPredicate(sbom *model.NeighborsNeighborsHasSBOM, subject *SbomSubjec
 	spdxDoc.DataLicense = spdx_v2_3.DataLicense
 	spdxDoc.DocumentName = subject.Namespaces[0].Names[0].Name
 	spdxDoc.DocumentNamespace = sbom.Uri
+	spdxDoc.CreationInfo = &spdx.CreationInfo{}
+	spdxDoc.CreationInfo.Created = sbom.KnownSince.Format("2006-01-02T15:04:05.000Z")
 
 	// packages are listed in the sbom.IncludedSoftware array, but their checksums are found in sbom.IncludedOccurrences.
 	// packageMap maps package node IDs to *spdx.Package. It updates the checksum of each package while traversing through sbom.IncludedOccurrences.
@@ -86,15 +94,13 @@ func getSpdxPredicate(sbom *model.NeighborsNeighborsHasSBOM, subject *SbomSubjec
 			continue
 		}
 		var p spdx.Package
-		p.PackageSPDXIdentifier = common.ElementID(pkgPurl)
+		p.PackageSPDXIdentifier = common.ElementID(sub.Namespaces[0].Names[0].Versions[0].Id)
 		p.PackageName = sub.Namespaces[0].Names[0].Name
-		p.PackageExternalReferences = []*spdx_v2_3.PackageExternalReference{
-			{
-				Category: spdx.CategoryPackageManager,
-				Locator:  pkgPurl,
-				RefType:  spdx.PackageManagerPURL,
-			},
-		}
+		p.PackageExternalReferences = append(p.PackageExternalReferences, &spdx.PackageExternalReference{
+			Category: spdx.CategoryPackageManager,
+			Locator:  pkgPurl,
+			RefType:  spdx.PackageManagerPURL,
+		})
 		p.PackageVersion = sub.Namespaces[0].Names[0].Versions[0].Version
 		packageMap[sub.Namespaces[0].Names[0].Versions[0].Id] = &p
 		packages = append(packages, &p)
@@ -130,7 +136,7 @@ func getSpdxPredicate(sbom *model.NeighborsNeighborsHasSBOM, subject *SbomSubjec
 				continue
 			}
 			var f spdx.File
-			f.FileSPDXIdentifier = common.ElementID(sub.Namespaces[0].Names[0].Name)
+			f.FileSPDXIdentifier = common.ElementID(sub.Namespaces[0].Names[0].Versions[0].Id)
 			f.FileName = sub.Namespaces[0].Names[0].Name
 			f.Checksums = append(f.Checksums, common.Checksum{
 				Algorithm: common.ChecksumAlgorithm(pkg.Artifact.Algorithm),
@@ -161,10 +167,10 @@ func getSpdxPredicate(sbom *model.NeighborsNeighborsHasSBOM, subject *SbomSubjec
 		if subject.Namespaces[0].Names[0].Versions[0].Purl != rel.Package.Namespaces[0].Names[0].Versions[0].Purl {
 			var r spdx.Relationship
 			r.RefA = common.DocElementID{
-				ElementRefID: common.ElementID(rel.Package.Namespaces[0].Names[0].Versions[0].Purl),
+				ElementRefID: common.ElementID(rel.Package.Namespaces[0].Names[0].Versions[0].Id),
 			}
 			r.RefB = common.DocElementID{
-				ElementRefID: common.ElementID(rel.DependencyPackage.Namespaces[0].Names[0].Versions[0].Purl),
+				ElementRefID: common.ElementID(rel.DependencyPackage.Namespaces[0].Names[0].Versions[0].Id),
 			}
 			r.Relationship = common.TypeRelationshipOther
 			relationships = append(relationships, &r)
@@ -194,10 +200,20 @@ func getCdxPredicate(sbom *model.NeighborsNeighborsHasSBOM, subject *SbomSubject
 	bom.Metadata = &cdx.Metadata{}
 	bom.Metadata.Component = &cdx.Component{}
 	bom.Metadata.Component.Type = cdx.ComponentTypeLibrary
-	bom.Metadata.Component.Name = subject.Namespaces[0].Names[0].Name
-	bom.Metadata.Component.Version = subject.Namespaces[0].Names[0].Versions[0].Version
-	bom.Metadata.Component.BOMRef = subject.Namespaces[0].Names[0].Versions[0].Purl
-	bom.Metadata.Component.PackageURL = subject.Namespaces[0].Names[0].Versions[0].Purl
+	subjectNodeId := subject.Id
+	if *subject.Typename == "Package" {
+		bom.Metadata.Component.Name = subject.Namespaces[0].Names[0].Name
+		bom.Metadata.Component.Version = subject.Namespaces[0].Names[0].Versions[0].Version
+		bom.Metadata.Component.BOMRef = subject.Namespaces[0].Names[0].Versions[0].Purl
+		bom.Metadata.Component.PackageURL = subject.Namespaces[0].Names[0].Versions[0].Purl
+	} else if *subject.Typename == "Artifact" {
+		bom.Metadata.Component.Hashes = &[]cdx.Hash{
+			{
+				Algorithm: cdx.HashAlgorithm(subject.Algorithm),
+				Value:     subject.Digest,
+			},
+		}
+	}
 	bom.Metadata.Timestamp = sbom.KnownSince.Format("2006-01-02T15:04:05.000Z")
 
 	// componentMap maps component node IDs to *cdx.Component. It updates the checksum of each package while traversing through sbom.IncludedOccurrences.
@@ -212,9 +228,6 @@ func getCdxPredicate(sbom *model.NeighborsNeighborsHasSBOM, subject *SbomSubject
 			return nil, err
 		}
 		pkgPurl := sub.Namespaces[0].Names[0].Versions[0].GetPurl()
-		if pkgPurl == subject.Namespaces[0].Names[0].Versions[0].GetPurl() {
-			continue
-		}
 		var comp cdx.Component
 		comp.Type = cdx.ComponentTypeLibrary
 		comp.BOMRef = pkgPurl
@@ -230,6 +243,12 @@ func getCdxPredicate(sbom *model.NeighborsNeighborsHasSBOM, subject *SbomSubject
 		sub, err := getPkgSubject(pkg.Subject)
 		if err != nil {
 			return nil, err
+		}
+		if bom.Metadata.Component.Name == "" && subjectNodeId == pkg.Artifact.Id {
+			bom.Metadata.Component.Name = sub.Namespaces[0].Names[0].Name
+			bom.Metadata.Component.Version = sub.Namespaces[0].Names[0].Versions[0].Version
+			bom.Metadata.Component.BOMRef = sub.Namespaces[0].Names[0].Versions[0].Purl
+			bom.Metadata.Component.PackageURL = sub.Namespaces[0].Names[0].Versions[0].Purl
 		}
 		hashesMap[sub.Namespaces[0].Names[0].Versions[0].Id] = append(hashesMap[sub.Namespaces[0].Names[0].Versions[0].Id], cdx.Hash{
 			Algorithm: cdx.HashAlgorithm(pkg.Artifact.Algorithm),
