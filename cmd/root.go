@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/in-toto/attestation-verifier/utils"
+	"github.com/in-toto/attestation-verifier/parsers"
 	"github.com/in-toto/attestation-verifier/verifier"
 	"github.com/secure-systems-lab/go-securesystemslib/dsse"
 	"github.com/spf13/cobra"
@@ -82,9 +82,21 @@ func verify(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
+	parameters := map[string]string{}
+	if len(parametersPath) > 0 {
+		contents, err := os.ReadFile(parametersPath)
+		if err != nil {
+			return err
+		}
+
+		if err := json.Unmarshal(contents, &parameters); err != nil {
+			return err
+		}
+	}
+
 	if purl != "" {
-		utils.GetAttestationFromPURL(purl, graphqlEndpoint)
-		return nil
+		statements := parsers.GetAttestationFromPURL(purl, graphqlEndpoint)
+		return verifier.VerifyAttestationfromGUAC(layout, statements, parameters)
 	} else if attestationsDir != "" {
 		dirEntries, err := os.ReadDir(attestationsDir)
 		if err != nil {
@@ -118,19 +130,7 @@ func verify(cmd *cobra.Command, args []string) error {
 			attestations[strings.TrimSuffix(name, ".json")] = envelope
 		}
 
-		parameters := map[string]string{}
-		if len(parametersPath) > 0 {
-			contents, err := os.ReadFile(parametersPath)
-			if err != nil {
-				return err
-			}
-
-			if err := json.Unmarshal(contents, &parameters); err != nil {
-				return err
-			}
-		}
-
-		return verifier.Verify(layout, attestations, parameters)
+		return verifier.VerifyAttestation(layout, attestations, parameters)
 	}
 
 	return fmt.Errorf("either purl[-p] or attestation-directory[-a] required for verification")

@@ -1,10 +1,13 @@
-package utils
+package parsers
 
 import (
+	"context"
 	"encoding/json"
 	"strings"
+	"time"
 
 	cdx "github.com/CycloneDX/cyclonedx-go"
+	"github.com/Khan/genqlient/graphql"
 	model "github.com/guacsec/guac/pkg/assembler/clients/generated"
 	attestationv1 "github.com/in-toto/attestation/go/v1"
 	"github.com/in-toto/in-toto-golang/in_toto"
@@ -24,10 +27,10 @@ type SbomSubject struct {
 	Namespaces []model.AllPkgTreeNamespacesPackageNamespace `json:"namespaces"`
 }
 
-func ParseSbomAttestation(sbom *model.NeighborsNeighborsHasSBOM) (*attestationv1.Statement, error) {
+func ParseSbomAttestation(ctx context.Context, gqlclient graphql.Client, sbom *model.NeighborsNeighborsHasSBOM, vuln []*model.NeighborsNeighborsCertifyVEXStatement) (*attestationv1.Statement, error) {
 	s := &attestationv1.Statement{}
 
-	subject, err := getPkgSubject(sbom.Subject)
+	subject, err := parsePkgSubject(sbom.Subject)
 	if err != nil {
 		return nil, err
 	}
@@ -53,12 +56,12 @@ func ParseSbomAttestation(sbom *model.NeighborsNeighborsHasSBOM) (*attestationv1
 	}
 
 	if s.PredicateType == in_toto.PredicateCycloneDX {
-		s.Predicate, err = getCdxPredicate(sbom, subject)
+		s.Predicate, err = getCdxPredicate(ctx, gqlclient, sbom, subject, vuln)
 		if err != nil {
 			return nil, err
 		}
 	} else {
-		s.Predicate, err = getSpdxPredicate(sbom, subject)
+		s.Predicate, err = getSpdxPredicate(ctx, gqlclient, sbom, subject)
 		if err != nil {
 			return nil, err
 		}
@@ -67,15 +70,16 @@ func ParseSbomAttestation(sbom *model.NeighborsNeighborsHasSBOM) (*attestationv1
 	return s, nil
 }
 
-func getSpdxPredicate(sbom *model.NeighborsNeighborsHasSBOM, subject *SbomSubject) (*structpb.Struct, error) {
+func getSpdxPredicate(ctx context.Context, gqlclient graphql.Client, sbom *model.NeighborsNeighborsHasSBOM, subject *SbomSubject) (*structpb.Struct, error) {
 	var spdxDoc spdx.Document
 	spdxDoc.SPDXIdentifier = common.ElementID("DOCUMENT")
 	spdxDoc.SPDXVersion = spdx_v2_3.Version
 	spdxDoc.DataLicense = spdx_v2_3.DataLicense
 	spdxDoc.DocumentName = subject.Namespaces[0].Names[0].Name
 	spdxDoc.DocumentNamespace = sbom.Uri
-	spdxDoc.CreationInfo = &spdx.CreationInfo{}
-	spdxDoc.CreationInfo.Created = sbom.KnownSince.Format("2006-01-02T15:04:05.000Z")
+	spdxDoc.CreationInfo = &spdx.CreationInfo{
+		Created: sbom.KnownSince.Format(time.RFC3339),
+	}
 
 	// packages are listed in the sbom.IncludedSoftware array, but their checksums are found in sbom.IncludedOccurrences.
 	// packageMap maps package node IDs to *spdx.Package. It updates the checksum of each package while traversing through sbom.IncludedOccurrences.
@@ -85,7 +89,7 @@ func getSpdxPredicate(sbom *model.NeighborsNeighborsHasSBOM, subject *SbomSubjec
 		if *pkg.GetTypename() != "Package" {
 			continue
 		}
-		sub, err := getPkgSubject(pkg)
+		sub, err := parsePkgSubject(pkg)
 		if err != nil {
 			return nil, err
 		}
@@ -102,6 +106,40 @@ func getSpdxPredicate(sbom *model.NeighborsNeighborsHasSBOM, subject *SbomSubjec
 			RefType:  spdx.PackageManagerPURL,
 		})
 		p.PackageVersion = sub.Namespaces[0].Names[0].Versions[0].Version
+		pkgCertifyLegal, err := model.CertifyLegal(ctx, gqlclient, model.CertifyLegalSpec{
+			Subject: &model.PackageOrSourceSpec{
+				Package: &model.PkgSpec{
+					Id: &sub.Namespaces[0].Names[0].Versions[0].Id,
+				},
+			},
+		})
+		if err != nil {
+			return nil, err
+		}
+		if license := pkgCertifyLegal.CertifyLegal; len(license) > 0 {
+			p.PackageLicenseDeclared = license[0].DeclaredLicense
+			p.PackageLicenseConcluded = license[0].DiscoveredLicense
+			p.PackageCopyrightText = license[0].Attribution
+		}
+		pkgHasMetadata, err := model.HasMetadata(ctx, gqlclient, model.HasMetadataSpec{
+			Subject: &model.PackageSourceOrArtifactSpec{
+				Package: &model.PkgSpec{
+					Id: &sub.Namespaces[0].Names[0].Versions[0].Id,
+				},
+			},
+		})
+		if err != nil {
+			return nil, err
+		}
+		for _, metadata := range pkgHasMetadata.HasMetadata {
+			if metadata.Key == "cpe" {
+				p.PackageExternalReferences = append(p.PackageExternalReferences, &spdx.PackageExternalReference{
+					RefType:  common.TypeSecurityCPE23Type,
+					Locator:  metadata.Value,
+					Category: common.CategorySecurity,
+				})
+			}
+		}
 		packageMap[sub.Namespaces[0].Names[0].Versions[0].Id] = &p
 		packages = append(packages, &p)
 	}
@@ -111,7 +149,7 @@ func getSpdxPredicate(sbom *model.NeighborsNeighborsHasSBOM, subject *SbomSubjec
 	files := make([]*spdx.File, 0)
 	fileMap := make(map[string]*spdx.File)
 	for _, pkg := range sbom.IncludedOccurrences {
-		sub, err := getPkgSubject(pkg.Subject)
+		sub, err := parsePkgSubject(pkg.Subject)
 		if err != nil {
 			return nil, err
 		}
@@ -191,15 +229,16 @@ func getSpdxPredicate(sbom *model.NeighborsNeighborsHasSBOM, subject *SbomSubjec
 	return &pred, nil
 }
 
-func getCdxPredicate(sbom *model.NeighborsNeighborsHasSBOM, subject *SbomSubject) (*structpb.Struct, error) {
+func getCdxPredicate(ctx context.Context, gqlclient graphql.Client, sbom *model.NeighborsNeighborsHasSBOM, subject *SbomSubject, vuln []*model.NeighborsNeighborsCertifyVEXStatement) (*structpb.Struct, error) {
 	var bom cdx.BOM
 	bom.BOMFormat = cdx.BOMFormat
 	bom.SpecVersion = cdx.SpecVersion(5)
 	bom.Version = 1
 	bom.SerialNumber = sbom.Uri
 	bom.Metadata = &cdx.Metadata{}
-	bom.Metadata.Component = &cdx.Component{}
-	bom.Metadata.Component.Type = cdx.ComponentTypeLibrary
+	bom.Metadata.Component = &cdx.Component{
+		Type: cdx.ComponentTypeLibrary,
+	}
 	subjectNodeId := subject.Id
 	if *subject.Typename == "Package" {
 		bom.Metadata.Component.Name = subject.Namespaces[0].Names[0].Name
@@ -214,7 +253,7 @@ func getCdxPredicate(sbom *model.NeighborsNeighborsHasSBOM, subject *SbomSubject
 			},
 		}
 	}
-	bom.Metadata.Timestamp = sbom.KnownSince.Format("2006-01-02T15:04:05.000Z")
+	bom.Metadata.Timestamp = sbom.KnownSince.Format(time.RFC3339)
 
 	// componentMap maps component node IDs to *cdx.Component. It updates the checksum of each package while traversing through sbom.IncludedOccurrences.
 	components := make([]*cdx.Component, 0)
@@ -223,7 +262,7 @@ func getCdxPredicate(sbom *model.NeighborsNeighborsHasSBOM, subject *SbomSubject
 		if *pkg.GetTypename() != "Package" {
 			continue
 		}
-		sub, err := getPkgSubject(pkg)
+		sub, err := parsePkgSubject(pkg)
 		if err != nil {
 			return nil, err
 		}
@@ -240,7 +279,7 @@ func getCdxPredicate(sbom *model.NeighborsNeighborsHasSBOM, subject *SbomSubject
 
 	hashesMap := make(map[string][]cdx.Hash)
 	for _, pkg := range sbom.IncludedOccurrences {
-		sub, err := getPkgSubject(pkg.Subject)
+		sub, err := parsePkgSubject(pkg.Subject)
 		if err != nil {
 			return nil, err
 		}
@@ -284,6 +323,76 @@ func getCdxPredicate(sbom *model.NeighborsNeighborsHasSBOM, subject *SbomSubject
 	}
 	bom.Dependencies = &dependencies
 
+	vulnerabilities := []cdx.Vulnerability{}
+	for _, v := range vuln {
+		sub, err := parsePkgSubject(v.Subject)
+		if err != nil {
+			return nil, err
+		}
+		if sub.Id == subjectNodeId {
+			var vulnerability cdx.Vulnerability
+			vulnerability.ID = v.Vulnerability.VulnerabilityIDs[0].VulnerabilityID
+			vulnerability.Description = v.Statement
+			vulnerability.Detail = v.StatusNotes
+			vulnerability.Published = v.KnownSince.Format(time.RFC3339)
+			vulnerability.Analysis = &cdx.VulnerabilityAnalysis{
+				State:         cdx.ImpactAnalysisState(v.Status),
+				Justification: cdx.ImpactAnalysisJustification(v.VexJustification),
+				Detail:        v.StatusNotes,
+			}
+
+			vulnMetadata, err := model.VulnerabilityMetadata(ctx, gqlclient, model.VulnerabilityMetadataSpec{
+				Vulnerability: &model.VulnerabilitySpec{
+					Id: &v.Vulnerability.VulnerabilityIDs[0].Id,
+				},
+			})
+			if err != nil {
+				return nil, err
+			}
+			ratings := []cdx.VulnerabilityRating{}
+			for _, r := range vulnMetadata.VulnerabilityMetadata {
+				r := r
+				if v.Vulnerability.Id == r.Vulnerability.Id {
+					var rating cdx.VulnerabilityRating
+					rating.Score = &r.ScoreValue
+					rating.Method = cdx.ScoringMethod(r.ScoreType)
+					ratings = append(ratings, rating)
+				}
+			}
+			vulnerability.Affects = &[]cdx.Affects{
+				{
+					Ref: "yoo1",
+					Range: &[]cdx.AffectedVersions{
+						{
+							Version: "1.1.0",
+							Range: "2.1.0",
+							Status: cdx.VulnerabilityStatusNotAffected,
+						},
+						{
+							Version: "2.2.0",
+							Range: "3.4.0",
+							Status: cdx.VulnerabilityStatusNotAffected,
+						},
+					},
+				},
+				{
+					Ref: "yoo2",
+					Range: &[]cdx.AffectedVersions{
+						{
+							Version: "6.7.0",
+							Range: "7.8.0",
+							Status: cdx.VulnerabilityStatusNotAffected,
+						},
+					},
+				},
+			}
+
+			vulnerability.Ratings = &ratings
+			vulnerabilities = append(vulnerabilities, vulnerability)
+		}
+	}
+	bom.Vulnerabilities = &vulnerabilities
+
 	bomBytes, err := json.Marshal(bom)
 	if err != nil {
 		return nil, err
@@ -297,7 +406,7 @@ func getCdxPredicate(sbom *model.NeighborsNeighborsHasSBOM, subject *SbomSubject
 	return &pred, nil
 }
 
-func getPkgSubject(sub any) (*SbomSubject, error) {
+func parsePkgSubject(sub any) (*SbomSubject, error) {
 	var subject SbomSubject
 	subjectbytes, err := json.Marshal(sub)
 	if err != nil {
