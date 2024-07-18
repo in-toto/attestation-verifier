@@ -288,6 +288,7 @@ func getCdxPredicate(ctx context.Context, gqlclient graphql.Client, sbom *model.
 			bom.Metadata.Component.Version = sub.Namespaces[0].Names[0].Versions[0].Version
 			bom.Metadata.Component.BOMRef = sub.Namespaces[0].Names[0].Versions[0].Purl
 			bom.Metadata.Component.PackageURL = sub.Namespaces[0].Names[0].Versions[0].Purl
+			continue
 		}
 		hashesMap[sub.Namespaces[0].Names[0].Versions[0].Id] = append(hashesMap[sub.Namespaces[0].Names[0].Versions[0].Id], cdx.Hash{
 			Algorithm: cdx.HashAlgorithm(pkg.Artifact.Algorithm),
@@ -301,9 +302,12 @@ func getCdxPredicate(ctx context.Context, gqlclient graphql.Client, sbom *model.
 		}
 	}
 
-	tempComponent := make([]cdx.Component, len(components))
-	for i, c := range components {
-		tempComponent[i] = *c
+	tempComponent := make([]cdx.Component, 0)
+	for _, c := range components {
+		if c.BOMRef == bom.Metadata.Component.BOMRef {
+			continue
+		}
+		tempComponent = append(tempComponent, *c)
 	}
 	bom.Components = &tempComponent
 
@@ -361,32 +365,9 @@ func getCdxPredicate(ctx context.Context, gqlclient graphql.Client, sbom *model.
 			}
 			vulnerability.Affects = &[]cdx.Affects{
 				{
-					Ref: "yoo1",
-					Range: &[]cdx.AffectedVersions{
-						{
-							Version: "1.1.0",
-							Range: "2.1.0",
-							Status: cdx.VulnerabilityStatusNotAffected,
-						},
-						{
-							Version: "2.2.0",
-							Range: "3.4.0",
-							Status: cdx.VulnerabilityStatusNotAffected,
-						},
-					},
-				},
-				{
-					Ref: "yoo2",
-					Range: &[]cdx.AffectedVersions{
-						{
-							Version: "6.7.0",
-							Range: "7.8.0",
-							Status: cdx.VulnerabilityStatusNotAffected,
-						},
-					},
+					Ref: bom.SerialNumber + "#" + bom.Metadata.Component.BOMRef,
 				},
 			}
-
 			vulnerability.Ratings = &ratings
 			vulnerabilities = append(vulnerabilities, vulnerability)
 		}
