@@ -13,7 +13,6 @@ import (
 	"github.com/in-toto/in-toto-golang/in_toto"
 	spdx "github.com/spdx/tools-golang/spdx"
 	"github.com/spdx/tools-golang/spdx/v2/common"
-	spdx_v2_3 "github.com/spdx/tools-golang/spdx/v2/v2_3"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/types/known/structpb"
 )
@@ -73,8 +72,8 @@ func ParseSbomAttestation(ctx context.Context, gqlclient graphql.Client, sbom *m
 func getSpdxPredicate(ctx context.Context, gqlclient graphql.Client, sbom *model.NeighborsNeighborsHasSBOM, subject *SbomSubject) (*structpb.Struct, error) {
 	var spdxDoc spdx.Document
 	spdxDoc.SPDXIdentifier = common.ElementID("DOCUMENT")
-	spdxDoc.SPDXVersion = spdx_v2_3.Version
-	spdxDoc.DataLicense = spdx_v2_3.DataLicense
+	spdxDoc.SPDXVersion = spdx.Version
+	spdxDoc.DataLicense = spdx.DataLicense
 	spdxDoc.DocumentName = subject.Namespaces[0].Names[0].Name
 	spdxDoc.DocumentNamespace = sbom.Uri
 	spdxDoc.CreationInfo = &spdx.CreationInfo{
