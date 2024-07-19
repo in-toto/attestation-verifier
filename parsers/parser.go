@@ -117,7 +117,7 @@ func getAttestation(ctx context.Context, gqlclient graphql.Client, collectedNeig
 	if len(collectedNeighbors.hasSBOMs) > 0 {
 		for i, sbom := range collectedNeighbors.hasSBOMs {
 			sbomName := "sbom"
-			if i > 1 {
+			if i > 0 {
 				sbomName = sbomName + fmt.Sprint(i)
 			}
 			sta, err := ParseSbomAttestation(ctx, gqlclient, sbom, collectedNeighbors.vexLinks)
@@ -136,7 +136,7 @@ func getAttestation(ctx context.Context, gqlclient graphql.Client, collectedNeig
 				for i, neighborHasSBOM := range neighborResponseHasSBOM.Neighbors {
 					if hasSBOM, ok := neighborHasSBOM.(*model.NeighborsNeighborsHasSBOM); ok {
 						sbomName := "sbom"
-						if i > 1 {
+						if i > 0 {
 							sbomName = sbomName + fmt.Sprint(i)
 						}
 						sta, err := ParseSbomAttestation(ctx, gqlclient, hasSBOM, collectedNeighbors.vexLinks)
