@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/in-toto/attestation-verifier/parsers"
+	"github.com/in-toto/attestation-verifier/utils"
 	"github.com/in-toto/attestation-verifier/verifier"
 	"github.com/secure-systems-lab/go-securesystemslib/dsse"
 	"github.com/spf13/cobra"
@@ -24,6 +25,7 @@ var (
 	parametersPath  string
 	graphqlEndpoint string
 	purl            string
+	saveAttestation bool
 )
 
 func Execute() {
@@ -73,6 +75,14 @@ func init() {
 		"endpoint used to connect to GUAC server (default: http://localhost:8080/query)",
 	)
 
+	rootCmd.Flags().BoolVarP(
+		&saveAttestation,
+		"save-attestation",
+		"s",
+		false,
+		"flag to save the retrieved attestation from GUAC server",
+	)
+
 	rootCmd.MarkFlagRequired("layout")
 }
 
@@ -96,6 +106,9 @@ func verify(cmd *cobra.Command, args []string) error {
 
 	if purl != "" {
 		statements := parsers.GetAttestationFromPURL(purl, graphqlEndpoint)
+		if (saveAttestation) {
+			return utils.SaveAttestation(statements)
+		}
 		return verifier.VerifyAttestationfromGUAC(layout, statements, parameters)
 	} else if attestationsDir != "" {
 		dirEntries, err := os.ReadDir(attestationsDir)
