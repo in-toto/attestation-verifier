@@ -82,16 +82,9 @@ func init() {
 		false,
 		"flag to save the retrieved attestation from GUAC server",
 	)
-
-	rootCmd.MarkFlagRequired("layout")
 }
 
 func verify(cmd *cobra.Command, args []string) error {
-	layout, err := verifier.LoadLayout(layoutPath)
-	if err != nil {
-		return err
-	}
-
 	parameters := map[string]string{}
 	if len(parametersPath) > 0 {
 		contents, err := os.ReadFile(parametersPath)
@@ -106,11 +99,21 @@ func verify(cmd *cobra.Command, args []string) error {
 
 	if purl != "" {
 		statements := parsers.GetAttestationFromPURL(purl, graphqlEndpoint)
-		if (saveAttestation) {
+		if saveAttestation {
 			return utils.SaveAttestation(statements)
+		}
+
+		layout, err := verifier.LoadLayout(layoutPath)
+		if err != nil {
+			return err
 		}
 		return verifier.VerifyAttestationfromGUAC(layout, statements, parameters)
 	} else if attestationsDir != "" {
+		layout, err := verifier.LoadLayout(layoutPath)
+		if err != nil {
+			return err
+		}
+
 		dirEntries, err := os.ReadDir(attestationsDir)
 		if err != nil {
 			return err
