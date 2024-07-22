@@ -28,10 +28,14 @@ func SaveAttestation(statements map[string]*attestationv1.Statement) error {
 			log.Info("Operation aborted by the user.")
 			return nil
 		}
-	} else {
-		if err := os.MkdirAll(dir, os.ModePerm); err != nil {
+
+		if err := os.RemoveAll(dir); err != nil {
 			return err
 		}
+	}
+
+	if err := os.MkdirAll(dir, os.ModePerm); err != nil {
+		return err
 	}
 
 	for name, statement := range statements {

@@ -11,6 +11,7 @@ import (
 	"github.com/guacsec/guac/pkg/cli"
 	attestationv1 "github.com/in-toto/attestation/go/v1"
 	log "github.com/sirupsen/logrus"
+	"google.golang.org/protobuf/encoding/protojson"
 )
 
 type neighbors struct {
@@ -112,8 +113,8 @@ func queryKnownNeighbors(ctx context.Context, gqlclient graphql.Client, subjectQ
 }
 
 func getAttestation(ctx context.Context, gqlclient graphql.Client, collectedNeighbors *neighbors) (map[string]*attestationv1.Statement, error) {
-	statements := make(map[string]*attestationv1.Statement, 0)
-
+	statements := make(map[string]*attestationv1.Statement)
+	statementSet := make(map[string]*attestationv1.Statement)
 	if len(collectedNeighbors.hasSBOMs) > 0 {
 		for i, sbom := range collectedNeighbors.hasSBOMs {
 			sbomName := "sbom"
@@ -124,16 +125,22 @@ func getAttestation(ctx context.Context, gqlclient graphql.Client, collectedNeig
 			if err != nil {
 				return nil, err
 			}
-			statements[sbomName] = sta
+			dup, err := checkRepeatedAttestations(statementSet, sta)
+			if err != nil {
+				return nil, err
+			}
+			if !dup {
+				statements[sbomName] = sta
+			}
 		}
 	} else {
 		// if there is an isOccurrence, check to see if there are sbom associated with it
-		for _, occurrence := range collectedNeighbors.occurrences {
+		for i, occurrence := range collectedNeighbors.occurrences {
 			neighborResponseHasSBOM, err := getAssociatedArtifact(ctx, gqlclient, occurrence, model.EdgeArtifactHasSbom)
 			if err != nil {
 				log.Fatalf("error querying neighbors: %v", err)
 			} else {
-				for i, neighborHasSBOM := range neighborResponseHasSBOM.Neighbors {
+				for _, neighborHasSBOM := range neighborResponseHasSBOM.Neighbors {
 					if hasSBOM, ok := neighborHasSBOM.(*model.NeighborsNeighborsHasSBOM); ok {
 						sbomName := "sbom"
 						if i > 0 {
@@ -143,7 +150,13 @@ func getAttestation(ctx context.Context, gqlclient graphql.Client, collectedNeig
 						if err != nil {
 							return nil, err
 						}
-						statements[sbomName] = sta
+						dup, err := checkRepeatedAttestations(statementSet, sta)
+						if err != nil {
+							return nil, err
+						}
+						if !dup {
+							statements[sbomName] = sta
+						}
 					}
 				}
 			}
@@ -153,34 +166,46 @@ func getAttestation(ctx context.Context, gqlclient graphql.Client, collectedNeig
 	if len(collectedNeighbors.hasSLSAs) > 0 {
 		for i, slsa := range collectedNeighbors.hasSLSAs {
 			slsaName := "build"
-			if i > 1 {
+			if i > 0 {
 				slsaName = slsaName + fmt.Sprint(i)
 			}
 			sta, err := ParseSlsaAttestation(slsa)
 			if err != nil {
 				return nil, err
 			}
-			statements[slsaName] = sta
+			dup, err := checkRepeatedAttestations(statementSet, sta)
+			if err != nil {
+				return nil, err
+			}
+			if !dup {
+				statements[slsaName] = sta
+			}
 		}
 	} else {
-		for _, occurrence := range collectedNeighbors.occurrences {
+		for i, occurrence := range collectedNeighbors.occurrences {
 			neighborResponseHasSLSA, err := getAssociatedArtifact(ctx, gqlclient, occurrence, model.EdgeArtifactHasSlsa)
 			if err != nil {
 				log.Fatalf("error querying neighbors: %v", err)
 				return nil, err
 			}
 
-			for i, neighborHasSLSA := range neighborResponseHasSLSA.Neighbors {
+			for _, neighborHasSLSA := range neighborResponseHasSLSA.Neighbors {
 				if hasSLSA, ok := neighborHasSLSA.(*model.NeighborsNeighborsHasSLSA); ok {
 					slsaName := "build"
-					if i > 1 {
+					if i > 0 {
 						slsaName = slsaName + fmt.Sprint(i)
 					}
 					sta, err := ParseSlsaAttestation(hasSLSA)
 					if err != nil {
 						return nil, err
 					}
-					statements[slsaName] = sta
+					dup, err := checkRepeatedAttestations(statementSet, sta)
+					if err != nil {
+						return nil, err
+					}
+					if !dup {
+						statements[slsaName] = sta
+					}
 				}
 			}
 		}
@@ -201,4 +226,21 @@ func getAssociatedArtifact(ctx context.Context, gqlclient graphql.Client, occurr
 		log.Fatalf("failed to located artifacts based on (algorithm:digest)")
 	}
 	return model.Neighbors(ctx, gqlclient, artifactResponse.Artifacts[0].Id, []model.Edge{edge})
+}
+
+func checkRepeatedAttestations(statementSet map[string]*attestationv1.Statement, statement *attestationv1.Statement) (bool, error) {
+	predBytes, err := protojson.Marshal(statement.Predicate)
+	if err != nil {
+		return false, err
+	}
+	if existedStatement, ok := statementSet[string(predBytes)]; ok {
+		if len(existedStatement.Subject) > 0 && len(statement.Subject) > 0 {
+			for k, v := range statement.Subject[0].Digest {
+				existedStatement.Subject[0].Digest[k] = v
+			}
+		}
+		return true, nil
+	}
+	statementSet[string(predBytes)] = statement
+	return false, nil
 }
