@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/Khan/genqlient/graphql"
 	model "github.com/guacsec/guac/pkg/assembler/clients/generated"
@@ -116,11 +117,8 @@ func getAttestation(ctx context.Context, gqlclient graphql.Client, collectedNeig
 	statements := make(map[string]*attestationv1.Statement)
 	statementSet := make(map[string]*attestationv1.Statement)
 	if len(collectedNeighbors.hasSBOMs) > 0 {
-		for i, sbom := range collectedNeighbors.hasSBOMs {
-			sbomName := "sbom"
-			if i > 0 {
-				sbomName = sbomName + fmt.Sprint(i)
-			}
+		for _, sbom := range collectedNeighbors.hasSBOMs {
+			sbomName := sbom.Origin
 			sta, err := ParseSbomAttestation(ctx, gqlclient, sbom, collectedNeighbors.vexLinks)
 			if err != nil {
 				return nil, err
@@ -135,17 +133,14 @@ func getAttestation(ctx context.Context, gqlclient graphql.Client, collectedNeig
 		}
 	} else {
 		// if there is an isOccurrence, check to see if there are sbom associated with it
-		for i, occurrence := range collectedNeighbors.occurrences {
+		for _, occurrence := range collectedNeighbors.occurrences {
 			neighborResponseHasSBOM, err := getAssociatedArtifact(ctx, gqlclient, occurrence, model.EdgeArtifactHasSbom)
 			if err != nil {
 				log.Fatalf("error querying neighbors: %v", err)
 			} else {
 				for _, neighborHasSBOM := range neighborResponseHasSBOM.Neighbors {
 					if hasSBOM, ok := neighborHasSBOM.(*model.NeighborsNeighborsHasSBOM); ok {
-						sbomName := "sbom"
-						if i > 0 {
-							sbomName = sbomName + fmt.Sprint(i)
-						}
+						sbomName := hasSBOM.Origin
 						sta, err := ParseSbomAttestation(ctx, gqlclient, hasSBOM, collectedNeighbors.vexLinks)
 						if err != nil {
 							return nil, err
@@ -164,11 +159,8 @@ func getAttestation(ctx context.Context, gqlclient graphql.Client, collectedNeig
 	}
 
 	if len(collectedNeighbors.hasSLSAs) > 0 {
-		for i, slsa := range collectedNeighbors.hasSLSAs {
-			slsaName := "build"
-			if i > 0 {
-				slsaName = slsaName + fmt.Sprint(i)
-			}
+		for _, slsa := range collectedNeighbors.hasSLSAs {
+			slsaName := getAttestationName(slsa.Slsa.Origin)
 			sta, err := ParseSlsaAttestation(slsa)
 			if err != nil {
 				return nil, err
@@ -182,7 +174,7 @@ func getAttestation(ctx context.Context, gqlclient graphql.Client, collectedNeig
 			}
 		}
 	} else {
-		for i, occurrence := range collectedNeighbors.occurrences {
+		for _, occurrence := range collectedNeighbors.occurrences {
 			neighborResponseHasSLSA, err := getAssociatedArtifact(ctx, gqlclient, occurrence, model.EdgeArtifactHasSlsa)
 			if err != nil {
 				log.Fatalf("error querying neighbors: %v", err)
@@ -191,10 +183,7 @@ func getAttestation(ctx context.Context, gqlclient graphql.Client, collectedNeig
 
 			for _, neighborHasSLSA := range neighborResponseHasSLSA.Neighbors {
 				if hasSLSA, ok := neighborHasSLSA.(*model.NeighborsNeighborsHasSLSA); ok {
-					slsaName := "build"
-					if i > 0 {
-						slsaName = slsaName + fmt.Sprint(i)
-					}
+					slsaName := getAttestationName(hasSLSA.Slsa.Origin)
 					sta, err := ParseSlsaAttestation(hasSLSA)
 					if err != nil {
 						return nil, err
@@ -226,6 +215,16 @@ func getAssociatedArtifact(ctx context.Context, gqlclient graphql.Client, occurr
 		log.Fatalf("failed to located artifacts based on (algorithm:digest)")
 	}
 	return model.Neighbors(ctx, gqlclient, artifactResponse.Artifacts[0].Id, []model.Edge{edge})
+}
+
+func getAttestationName(origin string) string {
+	originSplit := strings.Split(origin, "/")
+	stepName := originSplit[len(originSplit)-1]
+	dotIndex := strings.LastIndex(stepName, ".")
+	if dotIndex != -1 && dotIndex > 0 {
+		stepName = stepName[:dotIndex]
+	}
+	return stepName
 }
 
 func checkRepeatedAttestations(statementSet map[string]*attestationv1.Statement, statement *attestationv1.Statement) (bool, error) {
