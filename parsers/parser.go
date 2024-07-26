@@ -118,7 +118,7 @@ func getAttestation(ctx context.Context, gqlclient graphql.Client, collectedNeig
 	statementSet := make(map[string]*attestationv1.Statement)
 	if len(collectedNeighbors.hasSBOMs) > 0 {
 		for _, sbom := range collectedNeighbors.hasSBOMs {
-			sbomName := sbom.Origin
+			sbomName := getAttestationName(sbom.Origin)
 			sta, err := ParseSbomAttestation(ctx, gqlclient, sbom, collectedNeighbors.vexLinks)
 			if err != nil {
 				return nil, err
@@ -140,7 +140,7 @@ func getAttestation(ctx context.Context, gqlclient graphql.Client, collectedNeig
 			} else {
 				for _, neighborHasSBOM := range neighborResponseHasSBOM.Neighbors {
 					if hasSBOM, ok := neighborHasSBOM.(*model.NeighborsNeighborsHasSBOM); ok {
-						sbomName := hasSBOM.Origin
+						sbomName := getAttestationName(hasSBOM.Origin)
 						sta, err := ParseSbomAttestation(ctx, gqlclient, hasSBOM, collectedNeighbors.vexLinks)
 						if err != nil {
 							return nil, err

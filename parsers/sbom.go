@@ -43,15 +43,27 @@ func ParseSbomAttestation(ctx context.Context, gqlclient graphql.Client, sbom *m
 		s.PredicateType = in_toto.PredicateSPDX
 	}
 
-	subName := ""
 	if *sbom.Subject.GetTypename() == "Package" {
-		subName = subject.Namespaces[0].Names[0].Name
-	}
-	s.Subject = []*attestationv1.ResourceDescriptor{
-		{
-			Name: subName,
-			Uri:  sbom.Uri,
-		},
+		s.Subject = []*attestationv1.ResourceDescriptor{
+			{
+				Name: subject.Namespaces[0].Names[0].Name,
+				Uri:  subject.Namespaces[0].Names[0].Versions[0].Purl,
+			},
+		}
+	} else if *sbom.Subject.GetTypename() == "Artifact" {
+		digest := map[string]string{}
+		digest[subject.Algorithm] = subject.Digest
+		s.Subject = []*attestationv1.ResourceDescriptor{
+			{
+				Digest:  digest,
+			},
+		}
+	} else {
+		s.Subject = []*attestationv1.ResourceDescriptor{
+			{
+				Uri:  sbom.Uri,
+			},
+		}
 	}
 
 	if s.PredicateType == in_toto.PredicateCycloneDX {
