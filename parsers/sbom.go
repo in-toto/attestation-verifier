@@ -17,15 +17,6 @@ import (
 	"google.golang.org/protobuf/types/known/structpb"
 )
 
-type SbomSubject struct {
-	Typename   *string                                      `json:"__typename"`
-	Id         string                                       `json:"id"`
-	Type       string                                       `json:"type"`
-	Algorithm  string                                       `json:"algorithm"`
-	Digest     string                                       `json:"digest"`
-	Namespaces []model.AllPkgTreeNamespacesPackageNamespace `json:"namespaces"`
-}
-
 func ParseSbomAttestation(ctx context.Context, gqlclient graphql.Client, sbom *model.NeighborsNeighborsHasSBOM, vuln []*model.NeighborsNeighborsCertifyVEXStatement) (*attestationv1.Statement, error) {
 	s := &attestationv1.Statement{}
 
@@ -55,13 +46,13 @@ func ParseSbomAttestation(ctx context.Context, gqlclient graphql.Client, sbom *m
 		digest[subject.Algorithm] = subject.Digest
 		s.Subject = []*attestationv1.ResourceDescriptor{
 			{
-				Digest:  digest,
+				Digest: digest,
 			},
 		}
 	} else {
 		s.Subject = []*attestationv1.ResourceDescriptor{
 			{
-				Uri:  sbom.Uri,
+				Uri: sbom.Uri,
 			},
 		}
 	}
@@ -81,7 +72,7 @@ func ParseSbomAttestation(ctx context.Context, gqlclient graphql.Client, sbom *m
 	return s, nil
 }
 
-func getSpdxPredicate(ctx context.Context, gqlclient graphql.Client, sbom *model.NeighborsNeighborsHasSBOM, subject *SbomSubject) (*structpb.Struct, error) {
+func getSpdxPredicate(ctx context.Context, gqlclient graphql.Client, sbom *model.NeighborsNeighborsHasSBOM, subject *PkgSubject) (*structpb.Struct, error) {
 	var spdxDoc spdx.Document
 	spdxDoc.SPDXIdentifier = common.ElementID("DOCUMENT")
 	spdxDoc.SPDXVersion = spdx.Version
@@ -240,7 +231,7 @@ func getSpdxPredicate(ctx context.Context, gqlclient graphql.Client, sbom *model
 	return &pred, nil
 }
 
-func getCdxPredicate(ctx context.Context, gqlclient graphql.Client, sbom *model.NeighborsNeighborsHasSBOM, subject *SbomSubject, vuln []*model.NeighborsNeighborsCertifyVEXStatement) (*structpb.Struct, error) {
+func getCdxPredicate(ctx context.Context, gqlclient graphql.Client, sbom *model.NeighborsNeighborsHasSBOM, subject *PkgSubject, vuln []*model.NeighborsNeighborsCertifyVEXStatement) (*structpb.Struct, error) {
 	var bom cdx.BOM
 	bom.BOMFormat = cdx.BOMFormat
 	bom.SpecVersion = cdx.SpecVersion(5)
@@ -250,12 +241,13 @@ func getCdxPredicate(ctx context.Context, gqlclient graphql.Client, sbom *model.
 	bom.Metadata.Component = &cdx.Component{
 		Type: cdx.ComponentTypeLibrary,
 	}
-	subjectNodeId := subject.Id
+	subjectNodeId := ""
 	if *subject.Typename == "Package" {
 		bom.Metadata.Component.Name = subject.Namespaces[0].Names[0].Name
 		bom.Metadata.Component.Version = subject.Namespaces[0].Names[0].Versions[0].Version
 		bom.Metadata.Component.BOMRef = subject.Namespaces[0].Names[0].Versions[0].Purl
 		bom.Metadata.Component.PackageURL = subject.Namespaces[0].Names[0].Versions[0].Purl
+		subjectNodeId = subject.Namespaces[0].Names[0].Versions[0].Id
 	} else if *subject.Typename == "Artifact" {
 		bom.Metadata.Component.Hashes = &[]cdx.Hash{
 			{
@@ -263,6 +255,7 @@ func getCdxPredicate(ctx context.Context, gqlclient graphql.Client, sbom *model.
 				Value:     subject.Digest,
 			},
 		}
+		subjectNodeId = subject.Id
 	}
 	bom.Metadata.Timestamp = sbom.KnownSince.Format(time.RFC3339)
 
@@ -294,11 +287,12 @@ func getCdxPredicate(ctx context.Context, gqlclient graphql.Client, sbom *model.
 		if err != nil {
 			return nil, err
 		}
-		if bom.Metadata.Component.Name == "" && subjectNodeId == pkg.Artifact.Id {
+		if *subject.Typename == "Artifact" && subjectNodeId == pkg.Artifact.Id {
 			bom.Metadata.Component.Name = sub.Namespaces[0].Names[0].Name
 			bom.Metadata.Component.Version = sub.Namespaces[0].Names[0].Versions[0].Version
 			bom.Metadata.Component.BOMRef = sub.Namespaces[0].Names[0].Versions[0].Purl
 			bom.Metadata.Component.PackageURL = sub.Namespaces[0].Names[0].Versions[0].Purl
+			subjectNodeId = sub.Namespaces[0].Names[0].Versions[0].Id
 			continue
 		}
 		hashesMap[sub.Namespaces[0].Names[0].Versions[0].Id] = append(hashesMap[sub.Namespaces[0].Names[0].Versions[0].Id], cdx.Hash{
@@ -344,7 +338,8 @@ func getCdxPredicate(ctx context.Context, gqlclient graphql.Client, sbom *model.
 		if err != nil {
 			return nil, err
 		}
-		if sub.Id == subjectNodeId {
+
+		if (*sub.Typename == "Artifact" && sub.Id == subjectNodeId) || (*sub.Typename == "Package" && sub.Namespaces[0].Names[0].Versions[0].Id == subjectNodeId) {
 			var vulnerability cdx.Vulnerability
 			vulnerability.ID = v.Vulnerability.VulnerabilityIDs[0].VulnerabilityID
 			vulnerability.Description = v.Statement
@@ -396,16 +391,4 @@ func getCdxPredicate(ctx context.Context, gqlclient graphql.Client, sbom *model.
 	}
 
 	return &pred, nil
-}
-
-func parsePkgSubject(sub any) (*SbomSubject, error) {
-	var subject SbomSubject
-	subjectbytes, err := json.Marshal(sub)
-	if err != nil {
-		return nil, err
-	}
-	if err = json.Unmarshal(subjectbytes, &subject); err != nil {
-		return nil, err
-	}
-	return &subject, nil
 }

@@ -6,13 +6,14 @@ import (
 	"strings"
 
 	model "github.com/guacsec/guac/pkg/assembler/clients/generated"
+	"github.com/in-toto/attestation-verifier/utils"
 	attestationv1 "github.com/in-toto/attestation/go/v1"
 	"github.com/in-toto/in-toto-golang/in_toto"
 	slsa1 "github.com/in-toto/in-toto-golang/in_toto/slsa_provenance/v1"
 	"google.golang.org/protobuf/encoding/protojson"
 )
 
-func ParseSlsaAttestation(slsa *model.NeighborsNeighborsHasSLSA) (*attestationv1.Statement, error) {
+func ParseSlsaAttestation(slsa *model.NeighborsNeighborsHasSLSA, pkgPurl string) (*attestationv1.Statement, error) {
 	s := &attestationv1.Statement{}
 	resultPred := make(map[string]interface{})
 
@@ -44,11 +45,14 @@ func ParseSlsaAttestation(slsa *model.NeighborsNeighborsHasSLSA) (*attestationv1
 
 	digest := make(map[string]string)
 	digest[slsa.Subject.Algorithm] = slsa.Subject.Digest
+	subjectName := utils.ParseSubjectName(pkgPurl)
 
 	data := map[string]interface{}{
 		"type": slsaType,
 		"subject": []map[string]interface{}{
 			{
+				"name":   subjectName,
+				"uri":    pkgPurl,
 				"digest": digest,
 			},
 		},

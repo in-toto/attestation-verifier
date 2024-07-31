@@ -9,6 +9,7 @@ import (
 
 	attestationv1 "github.com/in-toto/attestation/go/v1"
 	log "github.com/sirupsen/logrus"
+	"github.com/guacsec/guac/pkg/assembler/helpers"
 )
 
 func SaveAttestation(statements map[string]*attestationv1.Statement) error {
@@ -52,4 +53,16 @@ func SaveAttestation(statements map[string]*attestationv1.Statement) error {
 	}
 
 	return nil
+}
+
+// parse subject name from purl
+func ParseSubjectName(subject string) string {
+	genericPrefix := "pkg:guac/generic/"
+	if strings.HasPrefix(subject, genericPrefix) {
+		return strings.TrimPrefix(subject, genericPrefix)
+	}
+	if pkg, err := helpers.PurlToPkg(subject); err == nil {
+		return pkg.Name
+	}
+	return subject
 }

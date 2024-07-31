@@ -25,6 +25,7 @@ var (
 	parametersPath  string
 	graphqlEndpoint string
 	purl            string
+	hash            string
 	saveAttestation bool
 )
 
@@ -61,10 +62,18 @@ func init() {
 
 	rootCmd.Flags().StringVarP(
 		&purl,
-		"attestation-for",
+		"purl",
 		"p",
 		"",
 		"PURL for package",
+	)
+
+	rootCmd.Flags().StringVarP(
+		&hash,
+		"hash",
+		"d",
+		"",
+		"Hash of the artifact <alg>:<digest>",
 	)
 
 	rootCmd.Flags().StringVarP(
@@ -82,6 +91,8 @@ func init() {
 		false,
 		"flag to save the retrieved attestation from GUAC server",
 	)
+
+	rootCmd.MarkFlagsMutuallyExclusive("purl", "hash")
 }
 
 func verify(cmd *cobra.Command, args []string) error {
@@ -97,8 +108,8 @@ func verify(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	if purl != "" {
-		statements := parsers.GetAttestationFromPURL(purl, graphqlEndpoint)
+	if purl != "" || hash != "" {
+		statements := parsers.GetAttestationFromPURL(purl, hash, graphqlEndpoint)
 		if saveAttestation {
 			return utils.SaveAttestation(statements)
 		}
