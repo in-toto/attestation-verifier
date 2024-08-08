@@ -157,7 +157,7 @@ func verify(cmd *cobra.Command, args []string) error {
 			attestations[strings.TrimSuffix(name, ".json")] = envelope
 		}
 
-		return verifier.VerifyAttestation(layout, attestations, parameters)
+		return verifier.Verify(layout, attestations, parameters)
 	}
 
 	return fmt.Errorf("either purl[-p] or attestation-directory[-a] required for verification")

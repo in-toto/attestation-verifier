@@ -40,7 +40,7 @@ func verifyLayout(layout *Layout, parameters map[string]string) (*Layout, error)
 	return layout, nil
 }
 
-func Verify(layout *Layout, claims map[string]map[AttestationIdentifier]*attestationv1.Statement, isRawAttestations bool) error {
+func verifyAttestation(layout *Layout, claims map[string]map[AttestationIdentifier]*attestationv1.Statement, isRawAttestations bool) error {
 	env, err := getCELEnv()
 	if err != nil {
 		return err
@@ -122,10 +122,10 @@ func VerifyAttestationfromGUAC(layout *Layout, statements map[string]*attestatio
 	}
 
 	log.Info("Done.")
-	return Verify(layout, claims, true)
+	return verifyAttestation(layout, claims, true)
 }
 
-func VerifyAttestation(layout *Layout, attestations map[string]*dsse.Envelope, parameters map[string]string) error {
+func Verify(layout *Layout, attestations map[string]*dsse.Envelope, parameters map[string]string) error {
 
 	layout, err := verifyLayout(layout, parameters)
 	if err != nil {
@@ -186,7 +186,7 @@ func VerifyAttestation(layout *Layout, attestations map[string]*dsse.Envelope, p
 	}
 	log.Info("Done.")
 
-	return Verify(layout, claims, false)
+	return verifyAttestation(layout, claims, false)
 }
 
 func getVerifiers(publicKeys map[string]Functionary) ([]dsse.Verifier, error) {

@@ -49,12 +49,6 @@ func ParseSbomAttestation(ctx context.Context, gqlclient graphql.Client, sbom *m
 				Digest: digest,
 			},
 		}
-	} else {
-		s.Subject = []*attestationv1.ResourceDescriptor{
-			{
-				Uri: sbom.Uri,
-			},
-		}
 	}
 
 	if s.PredicateType == in_toto.PredicateCycloneDX {
@@ -234,7 +228,7 @@ func getSpdxPredicate(ctx context.Context, gqlclient graphql.Client, sbom *model
 func getCdxPredicate(ctx context.Context, gqlclient graphql.Client, sbom *model.NeighborsNeighborsHasSBOM, subject *PkgSubject, vuln []*model.NeighborsNeighborsCertifyVEXStatement) (*structpb.Struct, error) {
 	var bom cdx.BOM
 	bom.BOMFormat = cdx.BOMFormat
-	bom.SpecVersion = cdx.SpecVersion(5)
+	bom.SpecVersion = cdx.SpecVersion(7)
 	bom.Version = 1
 	bom.SerialNumber = sbom.Uri
 	bom.Metadata = &cdx.Metadata{}
