@@ -17,15 +17,15 @@ import (
 	"google.golang.org/protobuf/encoding/protojson"
 )
 
-func verifyLayout(layout *Layout, parameters map[string]string) (*Layout, error) {
+func Verify(layout *Layout, attestations map[string]*dsse.Envelope, parameters map[string]string) error {
 	log.Info("Verifying layout expiry...")
 	expiry, err := time.Parse(time.RFC3339, layout.Expires)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	if compare := expiry.Compare(time.Now()); compare == -1 {
-		return nil, fmt.Errorf("layout has expired")
+		return fmt.Errorf("layout has expired")
 	}
 	log.Info("Done.")
 
@@ -33,103 +33,9 @@ func verifyLayout(layout *Layout, parameters map[string]string) (*Layout, error)
 		log.Info("Substituting parameters...")
 		layout, err = substituteParameters(layout, parameters)
 		if err != nil {
-			return nil, err
+			return err
 		}
 		log.Info("Done.")
-	}
-	return layout, nil
-}
-
-func verifyAttestation(layout *Layout, claims map[string]map[AttestationIdentifier]*attestationv1.Statement, isRawAttestations bool) error {
-	env, err := getCELEnv()
-	if err != nil {
-		return err
-	}
-
-	for _, step := range layout.Steps {
-		stepStatements, ok := claims[step.Name]
-		if !ok {
-			return fmt.Errorf("no claims found for step %s", step.Name)
-		}
-
-		for _, expectedPredicate := range step.ExpectedPredicates {
-
-			matchedPredicates := map[string]*attestationv1.Statement{}
-			if expectedPredicate.Threshold == 0 {
-				expectedPredicate.Threshold = 1
-			}
-			if !isRawAttestations {
-				matchedPredicates = getPredicates(stepStatements, expectedPredicate.PredicateType, expectedPredicate.Functionaries)
-				if len(matchedPredicates) < expectedPredicate.Threshold {
-					return fmt.Errorf("threshold not met for step %s", step.Name)
-				}
-			} else {
-				matchedPredicates["guac"] = stepStatements[AttestationIdentifier{PredicateType: expectedPredicate.PredicateType, Functionary: "guac"}]
-			}
-
-			failedChecks := []error{}
-			acceptedPredicates := 0
-			for functionary, statement := range matchedPredicates {
-				log.Infof("Verifying claim for step '%s' of type '%s' by '%s'...", step.Name, expectedPredicate.PredicateType, functionary)
-				failed := false
-
-				if err := applyArtifactRules(statement, step.ExpectedMaterials, step.ExpectedProducts, claims); err != nil {
-					failed = true
-					failedChecks = append(failedChecks, fmt.Errorf("for step %s, claim by %s failed artifact rules: %w", step.Name, functionary, err))
-				}
-
-				input, err := getActivation(statement)
-				if err != nil {
-					return err
-				}
-
-				if err := applyAttributeRules(env, input, expectedPredicate.ExpectedAttributes); err != nil {
-					failed = true
-					failedChecks = append(failedChecks, fmt.Errorf("for step %s, claim by %s failed attribute rules: %w", step.Name, functionary, err))
-				}
-
-				if failed {
-					log.Infof("Claim for step %s of type %s by %s failed.", step.Name, expectedPredicate.PredicateType, functionary)
-				} else {
-					acceptedPredicates += 1
-					log.Info("Done.")
-				}
-			}
-			if acceptedPredicates < expectedPredicate.Threshold {
-				return errors.Join(failedChecks...)
-			}
-		}
-	}
-
-	log.Info("Verification successful!")
-
-	return nil
-}
-
-func VerifyAttestationfromGUAC(layout *Layout, statements map[string]*attestationv1.Statement, parameters map[string]string) error {
-
-	layout, err := verifyLayout(layout, parameters)
-	if err != nil {
-		return err
-	}
-
-	log.Info("Loading attestations as claims...")
-	claims := map[string]map[AttestationIdentifier]*attestationv1.Statement{}
-
-	for i, attest := range statements {
-		claims[i] = map[AttestationIdentifier]*attestationv1.Statement{}
-		claims[i][AttestationIdentifier{Functionary: "guac", PredicateType: attest.PredicateType}] = attest
-	}
-
-	log.Info("Done.")
-	return verifyAttestation(layout, claims, true)
-}
-
-func Verify(layout *Layout, attestations map[string]*dsse.Envelope, parameters map[string]string) error {
-
-	layout, err := verifyLayout(layout, parameters)
-	if err != nil {
-		return err
 	}
 
 	log.Info("Fetching verifiers...")
@@ -145,7 +51,6 @@ func Verify(layout *Layout, attestations map[string]*dsse.Envelope, parameters m
 
 	log.Info("Loading attestations as claims...")
 	claims := map[string]map[AttestationIdentifier]*attestationv1.Statement{}
-
 	for attestationName, env := range attestations {
 		stepName := getStepName(attestationName)
 		if claims[stepName] == nil {
@@ -186,7 +91,64 @@ func Verify(layout *Layout, attestations map[string]*dsse.Envelope, parameters m
 	}
 	log.Info("Done.")
 
-	return verifyAttestation(layout, claims, false)
+	env, err := getCELEnv()
+	if err != nil {
+		return err
+	}
+
+	for _, step := range layout.Steps {
+		stepStatements, ok := claims[step.Name]
+		if !ok {
+			return fmt.Errorf("no claims found for step %s", step.Name)
+		}
+
+		for _, expectedPredicate := range step.ExpectedPredicates {
+			if expectedPredicate.Threshold == 0 {
+				expectedPredicate.Threshold = 1
+			}
+
+			matchedPredicates := getPredicates(stepStatements, expectedPredicate.PredicateType, expectedPredicate.Functionaries)
+			if len(matchedPredicates) < expectedPredicate.Threshold {
+				return fmt.Errorf("threshold not met for step %s", step.Name)
+			}
+
+			failedChecks := []error{}
+			acceptedPredicates := 0
+			for functionary, statement := range matchedPredicates {
+				log.Infof("Verifying claim for step '%s' of type '%s' by '%s'...", step.Name, expectedPredicate.PredicateType, functionary)
+				failed := false
+
+				if err := applyArtifactRules(statement, step.ExpectedMaterials, step.ExpectedProducts, claims); err != nil {
+					failed = true
+					failedChecks = append(failedChecks, fmt.Errorf("for step %s, claim by %s failed artifact rules: %w", step.Name, functionary, err))
+				}
+
+				input, err := getActivation(statement)
+				if err != nil {
+					return err
+				}
+
+				if err := applyAttributeRules(env, input, expectedPredicate.ExpectedAttributes); err != nil {
+					failed = true
+					failedChecks = append(failedChecks, fmt.Errorf("for step %s, claim by %s failed attribute rules: %w", step.Name, functionary, err))
+				}
+
+				if failed {
+					log.Infof("Claim for step %s of type %s by %s failed.", step.Name, expectedPredicate.PredicateType, functionary)
+				} else {
+					acceptedPredicates += 1
+					log.Info("Done.")
+				}
+			}
+			if acceptedPredicates < expectedPredicate.Threshold {
+				return errors.Join(failedChecks...)
+			}
+		}
+	}
+
+	log.Info("Verification successful!")
+
+	return nil
 }
 
 func getVerifiers(publicKeys map[string]Functionary) ([]dsse.Verifier, error) {
