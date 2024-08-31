@@ -7,7 +7,7 @@ toolchain go1.22.3
 require (
 	github.com/CycloneDX/cyclonedx-go v0.9.0
 	github.com/Khan/genqlient v0.7.0
-	github.com/google/cel-go v0.20.1
+	github.com/google/cel-go v0.21.0
 	github.com/guacsec/guac v0.7.2
 	github.com/in-toto/attestation v1.1.0
 	github.com/in-toto/in-toto-golang v0.9.0

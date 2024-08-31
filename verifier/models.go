@@ -36,6 +36,7 @@ type ExpectedStepPredicates struct {
 type Step struct {
 	Name               string                   `yaml:"name"`
 	FromGUAC           bool                     `yaml:"fromGUAC"`
+	Subject            string                   `yaml:"subject"`
 	Command            string                   `yaml:"command"`
 	ExpectedMaterials  []string                 `yaml:"expectedMaterials"`
 	ExpectedProducts   []string                 `yaml:"expectedProducts"`

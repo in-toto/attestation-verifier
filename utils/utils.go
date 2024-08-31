@@ -25,6 +25,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// SaveAttestation saves the attestations retrieved from Guac
 func SaveAttestation(attestations map[string]*dsse.Envelope) error {
 	dir := "attestations"
 	log.Infof("Creating Directory %s...", dir)
@@ -68,7 +69,7 @@ func SaveAttestation(attestations map[string]*dsse.Envelope) error {
 	return nil
 }
 
-// parse subject name from purl
+// ParseSubjectName parses subject name from purl
 func ParseSubjectName(subject string) string {
 	genericPrefix := "pkg:guac/generic/"
 	if strings.HasPrefix(subject, genericPrefix) {
@@ -80,6 +81,7 @@ func ParseSubjectName(subject string) string {
 	return subject
 }
 
+// WrapEnvelope wrap the dsse envelopse on attestations
 func WrapEnvelope(statements map[string]*attestationv1.Statement, key *in_toto.Key) (map[string]*dsse.Envelope, error) {
 	attestations := map[string]*dsse.Envelope{}
 	for stepName, statement := range statements {
@@ -147,6 +149,7 @@ func getSignerVerifierFromKey(key in_toto.Key) (dsse.SignerVerifier, error) {
 	return nil, fmt.Errorf("unsupported key type")
 }
 
+// Load private key from path or generate one if path is not provided
 func LoadPrivateKey(keyPath string) (*in_toto.Key, error) {
 	key := &in_toto.Key{}
 	if len(keyPath) > 0 {

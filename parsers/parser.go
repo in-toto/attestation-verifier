@@ -32,7 +32,8 @@ type PkgSubject struct {
 	Namespaces []model.AllPkgTreeNamespacesPackageNamespace `json:"namespaces"`
 }
 
-func GetAttestationFromPURL(purl, hash, graphqlEndpoint string) map[string]*attestationv1.Statement {
+// GetAttestationFromPURL retrives attestation from Guac
+func GetAttestationFromPURL(subjectStepMap map[string]string, graphqlEndpoint string) map[string]*attestationv1.Statement {
 	log.Info("Retrieving attestations from GUAC graphql endpoint.")
 	statements := make(map[string]*attestationv1.Statement, 0)
 
@@ -40,91 +41,96 @@ func GetAttestationFromPURL(purl, hash, graphqlEndpoint string) map[string]*atte
 	httpClient := http.Client{Transport: cli.HTTPHeaderTransport(ctx, "", http.DefaultTransport)}
 	gqlclient := graphql.NewClient(graphqlEndpoint, &httpClient)
 
-	if purl != "" {
-		pkgInput, err := helpers.PurlToPkg(purl)
-		if err != nil {
-			log.Fatalf("failed to parse PURL: %v", err)
-		}
+	for stepName, subject := range subjectStepMap {
+		if pkgInput, err := helpers.PurlToPkg(subject); err == nil {
+			pkgQualifierFilter := []model.PackageQualifierSpec{}
+			for _, qualifier := range pkgInput.Qualifiers {
+				qualifier := qualifier
+				pkgQualifierFilter = append(pkgQualifierFilter, model.PackageQualifierSpec{
+					Key:   qualifier.Key,
+					Value: &qualifier.Value,
+				})
+			}
 
-		pkgQualifierFilter := []model.PackageQualifierSpec{}
-		for _, qualifier := range pkgInput.Qualifiers {
-			qualifier := qualifier
-			pkgQualifierFilter = append(pkgQualifierFilter, model.PackageQualifierSpec{
-				Key:   qualifier.Key,
-				Value: &qualifier.Value,
-			})
-		}
+			pkgFilter := &model.PkgSpec{
+				Type:       &pkgInput.Type,
+				Namespace:  pkgInput.Namespace,
+				Name:       &pkgInput.Name,
+				Version:    pkgInput.Version,
+				Subpath:    pkgInput.Subpath,
+				Qualifiers: pkgQualifierFilter,
+			}
+			pkgResponse, err := model.Packages(ctx, gqlclient, *pkgFilter)
+			if err != nil {
+				log.Errorf("error querying for package: %v", err)
+				continue
+			}
+			if len(pkgResponse.Packages) != 1 {
+				log.Errorf("failed to locate the package based on purl")
+				continue
+			}
 
-		pkgFilter := &model.PkgSpec{
-			Type:       &pkgInput.Type,
-			Namespace:  pkgInput.Namespace,
-			Name:       &pkgInput.Name,
-			Version:    pkgInput.Version,
-			Subpath:    pkgInput.Subpath,
-			Qualifiers: pkgQualifierFilter,
-		}
-		pkgResponse, err := model.Packages(ctx, gqlclient, *pkgFilter)
-		if err != nil {
-			log.Fatalf("error querying for package: %v", err)
-		}
-		if len(pkgResponse.Packages) != 1 {
-			log.Fatalf("failed to locate the package based on purl")
-		}
+			pkgNameNeighbors, err := queryKnownNeighbors(ctx, gqlclient, pkgResponse.Packages[0].Namespaces[0].Names[0].Id)
+			if err != nil {
+				log.Errorf("error querying for package name neighbors: %v", err)
+				continue
+			}
 
-		pkgNameNeighbors, err := queryKnownNeighbors(ctx, gqlclient, pkgResponse.Packages[0].Namespaces[0].Names[0].Id)
-		if err != nil {
-			log.Fatalf("error querying for package name neighbors: %v", err)
-		}
+			sta, err := getAttestation(ctx, gqlclient, pkgNameNeighbors, stepName, subject)
+			if err != nil {
+				log.Errorf("error occured while collecting attestations, %+v", err)
+				continue
+			}
+			for k, v := range sta {
+				statements[k] = v
+			}
 
-		sta, err := getAttestation(ctx, gqlclient, pkgNameNeighbors, purl)
-		if err != nil {
-			log.Fatalf("error occured while collecting attestations, %+v", err)
-		}
-		for k, v := range sta {
-			statements[k] = v
-		}
+			pkgVersionNeighbors, err := queryKnownNeighbors(ctx, gqlclient, pkgResponse.Packages[0].Namespaces[0].Names[0].Versions[0].Id)
+			if err != nil {
+				log.Errorf("error querying for package version neighbors: %v", err)
+				continue
+			}
 
-		pkgVersionNeighbors, err := queryKnownNeighbors(ctx, gqlclient, pkgResponse.Packages[0].Namespaces[0].Names[0].Versions[0].Id)
-		if err != nil {
-			log.Fatalf("error querying for package version neighbors: %v", err)
-		}
+			sta, err = getAttestation(ctx, gqlclient, pkgVersionNeighbors, stepName, subject)
+			if err != nil {
+				log.Errorf("Error occured while collecting attestations, %+v", err)
+				continue
+			}
+			for k, v := range sta {
+				statements[k] = v
+			}
+		} else if split := strings.Split(subject, ":"); len(split) == 2 {
+			alg := strings.ToLower(string(split[0]))
+			digest := strings.ToLower(string(split[1]))
+			artifactFilter := &model.ArtifactSpec{
+				Algorithm: &alg,
+				Digest:    &digest,
+			}
 
-		sta, err = getAttestation(ctx, gqlclient, pkgVersionNeighbors, purl)
-		if err != nil {
-			log.Fatalf("Error occured while collecting attestations, %+v", err)
-		}
-		for k, v := range sta {
-			statements[k] = v
-		}
-	} else {
-		split := strings.Split(hash, ":")
-		if len(split) != 2 {
-			log.Fatalf("failed to parse artifact. Needs to be in algorithm:digest form")
-		}
-		alg := strings.ToLower(string(split[0]))
-		digest := strings.ToLower(string(split[1]))
-		artifactFilter := &model.ArtifactSpec{
-			Algorithm: &alg,
-			Digest:    &digest,
-		}
-
-		artifactResponse, err := model.Artifacts(ctx, gqlclient, *artifactFilter)
-		if err != nil {
-			log.Fatalf("error querying for artifacts: %v", err)
-		}
-		if len(artifactResponse.Artifacts) != 1 {
-			log.Fatalf("failed to locate artifacts based on (algorithm:digest)")
-		}
-		artifactNeighbors, err := queryKnownNeighbors(ctx, gqlclient, artifactResponse.Artifacts[0].Id)
-		if err != nil {
-			log.Fatalf("error querying for artifact neighbors: %v", err)
-		}
-		sta, err := getAttestation(ctx, gqlclient, artifactNeighbors, "")
-		if err != nil {
-			log.Fatalf("Error occured while collecting attestations, %+v", err)
-		}
-		for k, v := range sta {
-			statements[k] = v
+			artifactResponse, err := model.Artifacts(ctx, gqlclient, *artifactFilter)
+			if err != nil {
+				log.Errorf("error querying for artifacts: %v", err)
+				continue
+			}
+			if len(artifactResponse.Artifacts) != 1 {
+				log.Errorf("failed to locate artifacts based on (algorithm:digest)")
+				continue
+			}
+			artifactNeighbors, err := queryKnownNeighbors(ctx, gqlclient, artifactResponse.Artifacts[0].Id)
+			if err != nil {
+				log.Errorf("error querying for artifact neighbors: %v", err)
+				continue
+			}
+			sta, err := getAttestation(ctx, gqlclient, artifactNeighbors, stepName, "")
+			if err != nil {
+				log.Errorf("Error occured while collecting attestations, %+v", err)
+				continue
+			}
+			for k, v := range sta {
+				statements[k] = v
+			}
+		} else {
+			log.Errorf("Incorrect subject provided: %+v", subject)
 		}
 	}
 
@@ -155,7 +161,7 @@ func queryKnownNeighbors(ctx context.Context, gqlclient graphql.Client, subjectQ
 	return collectedNeighbors, nil
 }
 
-func getAttestation(ctx context.Context, gqlclient graphql.Client, collectedNeighbors *neighbors, pkgPurl string) (map[string]*attestationv1.Statement, error) {
+func getAttestation(ctx context.Context, gqlclient graphql.Client, collectedNeighbors *neighbors, stepName string, pkgPurl string) (map[string]*attestationv1.Statement, error) {
 	statements := make(map[string]*attestationv1.Statement)
 	statementSet := make(map[string]*attestationv1.Statement)
 	if len(collectedNeighbors.occurrences) > 0 && pkgPurl == "" {
@@ -168,16 +174,18 @@ func getAttestation(ctx context.Context, gqlclient graphql.Client, collectedNeig
 	if len(collectedNeighbors.hasSBOMs) > 0 {
 		for _, sbom := range collectedNeighbors.hasSBOMs {
 			sbomName := getAttestationName(sbom.Origin)
-			sta, err := ParseSbomAttestation(ctx, gqlclient, sbom, collectedNeighbors.vexLinks)
-			if err != nil {
-				return nil, err
-			}
-			dup, err := checkRepeatedAttestations(statementSet, sta)
-			if err != nil {
-				return nil, err
-			}
-			if !dup {
-				statements[sbomName] = sta
+			if stepName == sbomName || stepName == "" {
+				sta, err := ParseSbomAttestation(ctx, gqlclient, sbom, collectedNeighbors.vexLinks)
+				if err != nil {
+					return nil, err
+				}
+				dup, err := checkRepeatedAttestations(statementSet, sta)
+				if err != nil {
+					return nil, err
+				}
+				if !dup {
+					statements[sbomName] = sta
+				}
 			}
 		}
 	} else {
@@ -185,21 +193,23 @@ func getAttestation(ctx context.Context, gqlclient graphql.Client, collectedNeig
 		for _, occurrence := range collectedNeighbors.occurrences {
 			neighborResponseHasSBOM, err := getAssociatedArtifact(ctx, gqlclient, occurrence, model.EdgeArtifactHasSbom)
 			if err != nil {
-				log.Fatalf("error querying neighbors: %v", err)
+				log.Errorf("error querying neighbors: %v", err)
 			} else {
 				for _, neighborHasSBOM := range neighborResponseHasSBOM.Neighbors {
 					if hasSBOM, ok := neighborHasSBOM.(*model.NeighborsNeighborsHasSBOM); ok {
 						sbomName := getAttestationName(hasSBOM.Origin)
-						sta, err := ParseSbomAttestation(ctx, gqlclient, hasSBOM, collectedNeighbors.vexLinks)
-						if err != nil {
-							return nil, err
-						}
-						dup, err := checkRepeatedAttestations(statementSet, sta)
-						if err != nil {
-							return nil, err
-						}
-						if !dup {
-							statements[sbomName] = sta
+						if stepName == sbomName || stepName == "" {
+							sta, err := ParseSbomAttestation(ctx, gqlclient, hasSBOM, collectedNeighbors.vexLinks)
+							if err != nil {
+								return nil, err
+							}
+							dup, err := checkRepeatedAttestations(statementSet, sta)
+							if err != nil {
+								return nil, err
+							}
+							if !dup {
+								statements[sbomName] = sta
+							}
 						}
 					}
 				}
@@ -210,39 +220,43 @@ func getAttestation(ctx context.Context, gqlclient graphql.Client, collectedNeig
 	if len(collectedNeighbors.hasSLSAs) > 0 {
 		for _, slsa := range collectedNeighbors.hasSLSAs {
 			slsaName := getAttestationName(slsa.Slsa.Origin)
-			sta, err := ParseSlsaAttestation(slsa, pkgPurl)
-			if err != nil {
-				return nil, err
-			}
-			dup, err := checkRepeatedAttestations(statementSet, sta)
-			if err != nil {
-				return nil, err
-			}
-			if !dup {
-				statements[slsaName] = sta
+			if stepName == slsaName || stepName == "" {
+				sta, err := ParseSlsaAttestation(slsa, pkgPurl)
+				if err != nil {
+					return nil, err
+				}
+				dup, err := checkRepeatedAttestations(statementSet, sta)
+				if err != nil {
+					return nil, err
+				}
+				if !dup {
+					statements[slsaName] = sta
+				}
 			}
 		}
 	} else {
 		for _, occurrence := range collectedNeighbors.occurrences {
 			neighborResponseHasSLSA, err := getAssociatedArtifact(ctx, gqlclient, occurrence, model.EdgeArtifactHasSlsa)
 			if err != nil {
-				log.Fatalf("error querying neighbors: %v", err)
+				log.Errorf("error querying neighbors: %v", err)
 				return nil, err
 			}
 
 			for _, neighborHasSLSA := range neighborResponseHasSLSA.Neighbors {
 				if hasSLSA, ok := neighborHasSLSA.(*model.NeighborsNeighborsHasSLSA); ok {
 					slsaName := getAttestationName(hasSLSA.Slsa.Origin)
-					sta, err := ParseSlsaAttestation(hasSLSA, pkgPurl)
-					if err != nil {
-						return nil, err
-					}
-					dup, err := checkRepeatedAttestations(statementSet, sta)
-					if err != nil {
-						return nil, err
-					}
-					if !dup {
-						statements[slsaName] = sta
+					if stepName == slsaName || stepName == "" {
+						sta, err := ParseSlsaAttestation(hasSLSA, pkgPurl)
+						if err != nil {
+							return nil, err
+						}
+						dup, err := checkRepeatedAttestations(statementSet, sta)
+						if err != nil {
+							return nil, err
+						}
+						if !dup {
+							statements[slsaName] = sta
+						}
 					}
 				}
 			}
@@ -258,10 +272,10 @@ func getAssociatedArtifact(ctx context.Context, gqlclient graphql.Client, occurr
 	}
 	artifactResponse, err := model.Artifacts(ctx, gqlclient, *artifactFilter)
 	if err != nil {
-		log.Fatalf("error querying for artifacts: %v", err)
+		log.Errorf("error querying for artifacts: %v", err)
 	}
 	if len(artifactResponse.Artifacts) != 1 {
-		log.Fatalf("failed to located artifacts based on (algorithm:digest)")
+		log.Errorf("failed to located artifacts based on (algorithm:digest)")
 	}
 	return model.Neighbors(ctx, gqlclient, artifactResponse.Artifacts[0].Id, []model.Edge{edge})
 }

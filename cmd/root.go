@@ -24,8 +24,7 @@ var (
 	attestationsDir string
 	parametersPath  string
 	graphqlEndpoint string
-	purl            string
-	hash            string
+	subject         string
 	keyPath         string
 	saveAttestation bool
 )
@@ -62,19 +61,11 @@ func init() {
 	)
 
 	rootCmd.Flags().StringVarP(
-		&purl,
-		"purl",
-		"p",
+		&subject,
+		"subject",
+		"s",
 		"",
-		"PURL for package",
-	)
-
-	rootCmd.Flags().StringVarP(
-		&hash,
-		"hash",
-		"d",
-		"",
-		"Hash of the artifact <alg>:<digest>",
+		"subject can either be purl for package or <alg>:<digest> for an artifact",
 	)
 
 	rootCmd.Flags().StringVarP(
@@ -93,35 +84,50 @@ func init() {
 		"Path to a PEM formatted private key file",
 	)
 
-	rootCmd.Flags().BoolVarP(
+	rootCmd.Flags().BoolVar(
 		&saveAttestation,
 		"save-attestation",
-		"s",
 		false,
 		"flag to save the retrieved attestation from GUAC server",
 	)
-
-	rootCmd.MarkFlagsMutuallyExclusive("purl", "hash")
 }
 
 func verify(cmd *cobra.Command, args []string) error {
 
 	key := &in_toto.Key{}
 	var err error
-	if len(keyPath) != 0 || len(purl) != 0 || len(hash) != 0 {
-		key, err = utils.LoadPrivateKey(keyPath)
-		if err != nil {
-			return err
-		}
+
+	// maps stepname with subject
+	subjectStepMap := make(map[string]string, 0)
+	if subject != "" {
+		subjectStepMap[""] = subject
 	}
 
 	layout := &verifier.Layout{}
 	if len(layoutPath) > 0 {
 		if layout, err = verifier.LoadLayout(layoutPath); err != nil {
 			return err
+		}	
+
+		// getting subjects from layout
+		for _, step := range layout.Steps {
+			if step.FromGUAC {
+				if len(step.Subject) > 0 {
+					subjectStepMap[step.Name] = step.Subject
+				}
+			}
 		}
-		if key.KeyID != "" {
-			// adding functionary for attestations retrieved from GUAC
+	}
+
+	// loading private key if available else creating one
+	if len(keyPath) != 0 || len(subjectStepMap) != 0 {
+		key, err = utils.LoadPrivateKey(keyPath)
+		if err != nil {
+			return err
+		}
+
+		// adding key as functionary for attestation that are being retrieved from guac
+		if len(layout.Steps) != 0 {
 			a := verifier.Functionary{}
 			a.KeyID = key.KeyID
 			a.KeyIDHashAlgorithms = key.KeyIDHashAlgorithms
@@ -130,14 +136,11 @@ func verify(cmd *cobra.Command, args []string) error {
 				Public: key.KeyVal.Public,
 			}
 			a.Scheme = key.Scheme
-
 			layout.Functionaries[key.KeyID] = a
-
 			for _, step := range layout.Steps {
 				if step.FromGUAC {
 					for i, expectedPredicate := range step.ExpectedPredicates {
-						functionaries := append(expectedPredicate.Functionaries, key.KeyID)
-						step.ExpectedPredicates[i].Functionaries = functionaries
+						step.ExpectedPredicates[i].Functionaries = append(expectedPredicate.Functionaries, key.KeyID)
 					}
 				}
 			}
@@ -157,18 +160,18 @@ func verify(cmd *cobra.Command, args []string) error {
 	}
 
 	attestations := map[string]*dsse.Envelope{}
-	if purl != "" || hash != "" {
-		statements := parsers.GetAttestationFromPURL(purl, hash, graphqlEndpoint)
-		aa, err := utils.WrapEnvelope(statements, key)
+	if len(subjectStepMap) != 0 {
+		statements := parsers.GetAttestationFromPURL(subjectStepMap, graphqlEndpoint)
+		retrievedAttestation, err := utils.WrapEnvelope(statements, key)
 		if err != nil {
 			return err
 		}
 
 		if saveAttestation {
-			return utils.SaveAttestation(aa)
+			return utils.SaveAttestation(retrievedAttestation)
 		}
 
-		for name, attestation := range aa {
+		for name, attestation := range retrievedAttestation {
 			attestations[name] = attestation
 		}
 	}
