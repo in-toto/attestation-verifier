@@ -21,12 +21,6 @@ jobs:
           fetch-depth: 0
       - name: Update RSL
         run: |
-          git config --global commit.gpgsign true       # Sign all commits
-          git config --global gpg.x509.program gitsign  # Use gitsign for signing
-          git config --global gpg.format x509           # gitsign expects x509 args
-          git config --global user.name "${{ github.workflow }}"
-          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
           git fetch origin refs/gittuf/reference-state-log:refs/gittuf/reference-state-log
           gittuf rsl record ${{ github.ref }}
           git push origin refs/gittuf/reference-state-log:refs/gittuf/reference-state-log
