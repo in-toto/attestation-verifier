@@ -12,8 +12,6 @@ jobs:
     steps:
       - name: Install gittuf
         uses: gittuf/gittuf-installer@5c0fb4a2a0dc9434598cf2e74bb601d76861fc97
-        with:
-          gittuf-version: main
       - name: Checkout and verify repository
         run: |
           gittuf clone https://github.com/${{ github.repository }}
