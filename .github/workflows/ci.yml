@@ -18,3 +18,6 @@ jobs:
       - name: Verify witness attestation collections
         run: |
           go run main.go -l layouts/layout-witness.yml -a test-data-witness
+      - name: Verify testifysec/swf
+        run: |
+          go run main.go -l layouts/layout-swf.yml -a test-data-swf
