@@ -1,0 +1,17 @@
+name: Verify layouts
+on:
+  push:
+    branches: ['main']
+  pull_request:
+jobs:
+  verify-layouts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+      - name: Verify test standard layout
+        run: |
+          go run main.go -l layouts/layout.yml -a test-data
+      - name: Verify test NPM layout
+        run: |
+          go run main.go -l layouts/layout-npm.yml -a test-data-npm --substitute-parameters parameters/npm-sigstore.json
