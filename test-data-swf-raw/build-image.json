@@ -1,0 +1,1203 @@
+{
+  "_type": "https://in-toto.io/Statement/v0.1",
+  "subject": [
+    {
+      "name": "https://witness.dev/attestations/github/v0.1/pipelineurl:https://github.com/testifysec/swf/actions/runs/11133726521",
+      "digest": {
+        "sha256": "28b706985009ce0d8a2556145061ab49eaca91a72b99289c2f5b5d8094f133ca"
+      }
+    },
+    {
+      "name": "https://slsa.dev/provenance/v1.0/file:image.tar",
+      "digest": {
+        "sha256": "eebfc8dfcf1070235208bc38f64526117d34821ee4a963d99808616d21ec8414"
+      }
+    },
+    {
+      "name": "https://witness.dev/attestations/git/v0.1/authoremail:john@testifysec.com",
+      "digest": {
+        "sha256": "c70524a2f582439e3b3c2ec027cb1bfb636c029fa4101efa549d804b877241a7"
+      }
+    },
+    {
+      "name": "https://witness.dev/attestations/git/v0.1/parenthash:dec8c457eacb46ba643976641d10d6b62513fdc9",
+      "digest": {
+        "sha256": "d633110a7d3eed7d8bd443abf60a081d07bec454cc3b7376454029fbf69584cd"
+      }
+    },
+    {
+      "name": "https://witness.dev/attestations/github/v0.1/projecturl:https://github.com/testifysec/swf",
+      "digest": {
+        "sha256": "a6affbb590e833f4256f36e44b2d935325a174605990c30edcc3f29e73ee1f4a"
+      }
+    },
+    {
+      "name": "https://witness.dev/attestations/git/v0.1/refnameshort:ossff-demo",
+      "digest": {
+        "sha256": "559442735f055728a0a771dbf4dd9dcfe1f76204168f4e20e27c254b2354c1ea"
+      }
+    },
+    {
+      "name": "https://witness.dev/attestations/product/v0.1/file:image.tar",
+      "digest": {
+        "sha256": "eebfc8dfcf1070235208bc38f64526117d34821ee4a963d99808616d21ec8414"
+      }
+    },
+    {
+      "name": "https://witness.dev/attestations/oci/v0.1/manifestdigest:61d5b3b3654d8e9561a8c531a06ca855c935395e1568ce8c0272d32361758266",
+      "digest": {
+        "sha256": "61d5b3b3654d8e9561a8c531a06ca855c935395e1568ce8c0272d32361758266"
+      }
+    },
+    {
+      "name": "https://witness.dev/attestations/oci/v0.1/imageid:e923c3663af679b10113fd986f29bebd61928371d15c7e60e0c06e6a321a555e",
+      "digest": {
+        "sha256": "e923c3663af679b10113fd986f29bebd61928371d15c7e60e0c06e6a321a555e"
+      }
+    },
+    {
+      "name": "https://witness.dev/attestations/oci/v0.1/layerdiffid00:fb4beb660c37ce772015be2f275a5144c0018860c75a26fa26c7dac30f593b5c",
+      "digest": {
+        "sha256": "fb4beb660c37ce772015be2f275a5144c0018860c75a26fa26c7dac30f593b5c"
+      }
+    },
+    {
+      "name": "https://witness.dev/attestations/git/v0.1/commithash:2d7abd0bb5920fd5aaa5d4963d8ab9e674722074",
+      "digest": {
+        "sha1": "2d7abd0bb5920fd5aaa5d4963d8ab9e674722074"
+      }
+    },
+    {
+      "name": "https://witness.dev/attestations/oci/v0.1/tardigest:eebfc8dfcf1070235208bc38f64526117d34821ee4a963d99808616d21ec8414",
+      "digest": {
+        "sha256": "eebfc8dfcf1070235208bc38f64526117d34821ee4a963d99808616d21ec8414"
+      }
+    },
+    {
+      "name": "https://witness.dev/attestations/oci/v0.1/imagetag:ghcr.io/testifysec/swf/software:ossff-demo",
+      "digest": {
+        "sha256": "187bea45f0f0e8c1ec3508495e78296e4c7445b1afafa49892557d2f6cc165f2"
+      }
+    },
+    {
+      "name": "https://witness.dev/attestations/oci/v0.1/layerdiffid01:1c1cdd882e5e738c558650d7ec35254f227fd7a51371d521e76307aeeb018d95",
+      "digest": {
+        "sha256": "1c1cdd882e5e738c558650d7ec35254f227fd7a51371d521e76307aeeb018d95"
+      }
+    },
+    {
+      "name": "https://witness.dev/attestations/git/v0.1/committeremail:noreply@github.com",
+      "digest": {
+        "sha256": "3c205d8fc749f72977b9331e3179773c315bb1f4860c366de2abe9ec9337730b"
+      }
+    }
+  ],
+  "predicateType": "https://witness.testifysec.com/attestation-collection/v0.1",
+  "predicate": {
+    "name": "build-image",
+    "attestations": [
+      {
+        "type": "https://witness.dev/attestations/environment/v0.1",
+        "attestation": {
+          "os": "linux",
+          "hostname": "fv-az1980-290",
+          "username": "runner",
+          "variables": {
+            "ACCEPT_EULA": "Y",
+            "ACTIONS_CACHE_URL": "https://acghubeus1.actions.githubusercontent.com/TPWTd7TbODB00LV4cLh5O4CXrF54b671YAeQzCb111oFRUIXT0/",
+            "ACTIONS_ID_TOKEN_REQUEST_URL": "https://pipelinesghubeus12.actions.githubusercontent.com/TPWTd7TbODB00LV4cLh5O4CXrF54b671YAeQzCb111oFRUIXT0/00000000-0000-0000-0000-000000000000/_apis/distributedtask/hubs/Actions/plans/60eb0bd6-2e75-4bca-83e8-84418b8a4b32/jobs/6604c111-019b-5ed5-ae03-3fa9f8925512/idtoken?api-version=2.0",
+            "ACTIONS_RESULTS_URL": "https://results-receiver.actions.githubusercontent.com/",
+            "ACTIONS_RUNNER_ACTION_ARCHIVE_CACHE": "/opt/actionarchivecache",
+            "ACTIONS_RUNTIME_URL": "https://pipelinesghubeus12.actions.githubusercontent.com/TPWTd7TbODB00LV4cLh5O4CXrF54b671YAeQzCb111oFRUIXT0/",
+            "AGENT_TOOLSDIRECTORY": "/opt/hostedtoolcache",
+            "ANDROID_HOME": "/usr/local/lib/android/sdk",
+            "ANDROID_NDK": "/usr/local/lib/android/sdk/ndk/27.1.12297006",
+            "ANDROID_NDK_HOME": "/usr/local/lib/android/sdk/ndk/27.1.12297006",
+            "ANDROID_NDK_LATEST_HOME": "/usr/local/lib/android/sdk/ndk/27.1.12297006",
+            "ANDROID_NDK_ROOT": "/usr/local/lib/android/sdk/ndk/27.1.12297006",
+            "ANDROID_SDK_ROOT": "/usr/local/lib/android/sdk",
+            "ANT_HOME": "/usr/share/ant",
+            "AZURE_EXTENSION_DIR": "/opt/az/azcliextensions",
+            "BOOTSTRAP_HASKELL_NONINTERACTIVE": "1",
+            "CHROMEWEBDRIVER": "/usr/local/share/chromedriver-linux64",
+            "CHROME_BIN": "/usr/bin/google-chrome",
+            "CI": "true",
+            "CONDA": "/usr/share/miniconda",
+            "DEBIAN_FRONTEND": "noninteractive",
+            "DEPLOYMENT_BASEPATH": "/opt/runner",
+            "DOCKER_METADATA_OUTPUT_ANNOTATIONS": "manifest:org.opencontainers.image.created=2024-10-01T21:27:33.276Z\\nmanifest:org.opencontainers.image.description=\\nmanifest:org.opencontainers.image.licenses=Apache-2.0\\nmanifest:org.opencontainers.image.revision=2d7abd0bb5920fd5aaa5d4963d8ab9e674722074\\nmanifest:org.opencontainers.image.source=https://github.com/testifysec/swf\\nmanifest:org.opencontainers.image.title=swf\\nmanifest:org.opencontainers.image.url=https://github.com/testifysec/swf\\nmanifest:org.opencontainers.image.version=ossff-demo",
+            "DOCKER_METADATA_OUTPUT_BAKE_FILE": "/home/runner/work/_temp/docker-actions-toolkit-NOtSHY/docker-metadata-action-bake.json",
+            "DOCKER_METADATA_OUTPUT_BAKE_FILE_ANNOTATIONS": "/home/runner/work/_temp/docker-actions-toolkit-NOtSHY/docker-metadata-action-bake-annotations.json",
+            "DOCKER_METADATA_OUTPUT_BAKE_FILE_LABELS": "/home/runner/work/_temp/docker-actions-toolkit-NOtSHY/docker-metadata-action-bake-labels.json",
+            "DOCKER_METADATA_OUTPUT_BAKE_FILE_TAGS": "/home/runner/work/_temp/docker-actions-toolkit-NOtSHY/docker-metadata-action-bake-tags.json",
+            "DOCKER_METADATA_OUTPUT_JSON": "{\"tags\":[\"ghcr.io/testifysec/swf/software:ossff-demo\"],\"labels\":{\"org.opencontainers.image.created\":\"2024-10-01T21:27:33.276Z\",\"org.opencontainers.image.description\":\"\",\"org.opencontainers.image.licenses\":\"Apache-2.0\",\"org.opencontainers.image.revision\":\"2d7abd0bb5920fd5aaa5d4963d8ab9e674722074\",\"org.opencontainers.image.source\":\"https://github.com/testifysec/swf\",\"org.opencontainers.image.title\":\"swf\",\"org.opencontainers.image.url\":\"https://github.com/testifysec/swf\",\"org.opencontainers.image.version\":\"ossff-demo\"},\"annotations\":[\"manifest:org.opencontainers.image.created=2024-10-01T21:27:33.276Z\",\"manifest:org.opencontainers.image.description=\",\"manifest:org.opencontainers.image.licenses=Apache-2.0\",\"manifest:org.opencontainers.image.revision=2d7abd0bb5920fd5aaa5d4963d8ab9e674722074\",\"manifest:org.opencontainers.image.source=https://github.com/testifysec/swf\",\"manifest:org.opencontainers.image.title=swf\",\"manifest:org.opencontainers.image.url=https://github.com/testifysec/swf\",\"manifest:org.opencontainers.image.version=ossff-demo\"]}",
+            "DOCKER_METADATA_OUTPUT_LABELS": "org.opencontainers.image.created=2024-10-01T21:27:33.276Z\\norg.opencontainers.image.description=\\norg.opencontainers.image.licenses=Apache-2.0\\norg.opencontainers.image.revision=2d7abd0bb5920fd5aaa5d4963d8ab9e674722074\\norg.opencontainers.image.source=https://github.com/testifysec/swf\\norg.opencontainers.image.title=swf\\norg.opencontainers.image.url=https://github.com/testifysec/swf\\norg.opencontainers.image.version=ossff-demo",
+            "DOCKER_METADATA_OUTPUT_TAGS": "ghcr.io/testifysec/swf/software:ossff-demo",
+            "DOCKER_METADATA_OUTPUT_VERSION": "ossff-demo",
+            "DOTNET_MULTILEVEL_LOOKUP": "0",
+            "DOTNET_NOLOGO": "1",
+            "DOTNET_SKIP_FIRST_TIME_EXPERIENCE": "1",
+            "EDGEWEBDRIVER": "/usr/local/share/edge_driver",
+            "GECKOWEBDRIVER": "/usr/local/share/gecko_driver",
+            "GHCUP_INSTALL_BASE_PREFIX": "/usr/local",
+            "GITHUB_ACTION": "__testifysec_witness-run-action",
+            "GITHUB_ACTIONS": "true",
+            "GITHUB_ACTION_REF": "reusable-workflow",
+            "GITHUB_ACTION_REPOSITORY": "testifysec/witness-run-action",
+            "GITHUB_ACTOR": "jkjell",
+            "GITHUB_ACTOR_ID": "135588",
+            "GITHUB_API_URL": "https://api.github.com",
+            "GITHUB_BASE_REF": "",
+            "GITHUB_ENV": "/home/runner/work/_temp/_runner_file_commands/set_env_eb697098-5601-4616-8da4-20c1b1532c50",
+            "GITHUB_EVENT_NAME": "push",
+            "GITHUB_EVENT_PATH": "/home/runner/work/_temp/_github_workflow/event.json",
+            "GITHUB_GRAPHQL_URL": "https://api.github.com/graphql",
+            "GITHUB_HEAD_REF": "",
+            "GITHUB_JOB": "build-image",
+            "GITHUB_OUTPUT": "/home/runner/work/_temp/_runner_file_commands/set_output_eb697098-5601-4616-8da4-20c1b1532c50",
+            "GITHUB_PATH": "/home/runner/work/_temp/_runner_file_commands/add_path_eb697098-5601-4616-8da4-20c1b1532c50",
+            "GITHUB_REF": "refs/heads/ossff-demo",
+            "GITHUB_REF_NAME": "ossff-demo",
+            "GITHUB_REF_PROTECTED": "false",
+            "GITHUB_REF_TYPE": "branch",
+            "GITHUB_REPOSITORY": "testifysec/swf",
+            "GITHUB_REPOSITORY_ID": "706339980",
+            "GITHUB_REPOSITORY_OWNER": "testifysec",
+            "GITHUB_REPOSITORY_OWNER_ID": "87545603",
+            "GITHUB_RETENTION_DAYS": "90",
+            "GITHUB_RUN_ATTEMPT": "1",
+            "GITHUB_RUN_ID": "11133726521",
+            "GITHUB_RUN_NUMBER": "130",
+            "GITHUB_SERVER_URL": "https://github.com",
+            "GITHUB_SHA": "2d7abd0bb5920fd5aaa5d4963d8ab9e674722074",
+            "GITHUB_STATE": "/home/runner/work/_temp/_runner_file_commands/save_state_eb697098-5601-4616-8da4-20c1b1532c50",
+            "GITHUB_STEP_SUMMARY": "/home/runner/work/_temp/_runner_file_commands/step_summary_eb697098-5601-4616-8da4-20c1b1532c50",
+            "GITHUB_TRIGGERING_ACTOR": "jkjell",
+            "GITHUB_WORKFLOW": "pipeline",
+            "GITHUB_WORKFLOW_REF": "testifysec/swf/.github/workflows/pipeline.yml@refs/heads/ossff-demo",
+            "GITHUB_WORKFLOW_SHA": "2d7abd0bb5920fd5aaa5d4963d8ab9e674722074",
+            "GITHUB_WORKSPACE": "/home/runner/work/swf/swf",
+            "GOROOT_1_20_X64": "/opt/hostedtoolcache/go/1.20.14/x64",
+            "GOROOT_1_21_X64": "/opt/hostedtoolcache/go/1.21.13/x64",
+            "GOROOT_1_22_X64": "/opt/hostedtoolcache/go/1.22.7/x64",
+            "GRADLE_HOME": "/usr/share/gradle-8.10.1",
+            "HOME": "/home/runner",
+            "HOMEBREW_CLEANUP_PERIODIC_FULL_DAYS": "3650",
+            "HOMEBREW_NO_AUTO_UPDATE": "1",
+            "INPUT_ATTESTATIONS": "git github environment oci slsa",
+            "INPUT_CERTIFICATE": "",
+            "INPUT_COMMAND": "/bin/sh -c \"docker buildx build -t ghcr.io/testifysec/swf/software:ossff-demo -o type=docker,dest=image.tar --push .\"\\n",
+            "INPUT_FULCIO": "",
+            "INPUT_INTERMEDIATES": "",
+            "INPUT_KEY": "",
+            "INPUT_OUTFILE": "",
+            "INPUT_STEP": "build-image",
+            "INPUT_TRACE": "false",
+            "INPUT_VERSION": "0.6.0",
+            "INPUT_WORKINGDIR": "",
+            "INVOCATION_ID": "97516d78401f4e1d8b04e03bcb79f371",
+            "ImageOS": "ubuntu22",
+            "ImageVersion": "20240922.1.0",
+            "JAVA_HOME": "/usr/lib/jvm/temurin-11-jdk-amd64",
+            "JAVA_HOME_11_X64": "/usr/lib/jvm/temurin-11-jdk-amd64",
+            "JAVA_HOME_17_X64": "/usr/lib/jvm/temurin-17-jdk-amd64",
+            "JAVA_HOME_21_X64": "/usr/lib/jvm/temurin-21-jdk-amd64",
+            "JAVA_HOME_8_X64": "/usr/lib/jvm/temurin-8-jdk-amd64",
+            "JOURNAL_STREAM": "8:4873",
+            "LANG": "C.UTF-8",
+            "LEIN_HOME": "/usr/local/lib/lein",
+            "LEIN_JAR": "/usr/local/lib/lein/self-installs/leiningen-2.11.2-standalone.jar",
+            "NVM_DIR": "/home/runner/.nvm",
+            "PATH": "/home/runner/work/_actions/testifysec/witness-run-action/reusable-workflow/dist:./:/snap/bin:/home/runner/.local/bin:/opt/pipx_bin:/home/runner/.cargo/bin:/home/runner/.config/composer/vendor/bin:/usr/local/.ghcup/bin:/home/runner/.dotnet/tools:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/bin:/usr/bin",
+            "PERFLOG_LOCATION_SETTING": "RUNNER_PERFLOG",
+            "PIPX_BIN_DIR": "/opt/pipx_bin",
+            "PIPX_HOME": "/opt/pipx",
+            "POWERSHELL_DISTRIBUTION_CHANNEL": "GitHub-Actions-ubuntu22",
+            "PWD": "/home/runner/work/swf/swf",
+            "RUNNER_ARCH": "X64",
+            "RUNNER_ENVIRONMENT": "github-hosted",
+            "RUNNER_NAME": "GitHub Actions 5",
+            "RUNNER_OS": "Linux",
+            "RUNNER_PERFLOG": "/home/runner/perflog",
+            "RUNNER_TEMP": "/home/runner/work/_temp",
+            "RUNNER_TOOL_CACHE": "/opt/hostedtoolcache",
+            "RUNNER_TRACKING_ID": "github_824d6712-62cd-4d39-a153-bb96f713f61f",
+            "RUNNER_USER": "runner",
+            "RUNNER_WORKSPACE": "/home/runner/work/swf",
+            "SELENIUM_JAR_PATH": "/usr/share/java/selenium-server.jar",
+            "SGX_AESM_ADDR": "1",
+            "STATS_D": "false",
+            "STATS_D_D": "false",
+            "STATS_EXT": "true",
+            "STATS_EXTP": "https://provjobdsettingscdn.blob.core.windows.net/settings/provjobdsettings-0.5.189/provjobd.data",
+            "STATS_RDCL": "true",
+            "STATS_TIS": "mining",
+            "STATS_TRP": "true",
+            "STATS_UE": "true",
+            "STATS_V3PS": "true",
+            "STATS_VMD": "true",
+            "STATS_VMFE": "true",
+            "SWIFT_PATH": "/usr/share/swift/usr/bin",
+            "SYSTEMD_EXEC_PID": "609",
+            "USER": "runner",
+            "VCPKG_INSTALLATION_ROOT": "/usr/local/share/vcpkg",
+            "XDG_CONFIG_HOME": "/home/runner/.config",
+            "XDG_RUNTIME_DIR": "/run/user/1001"
+          }
+        },
+        "starttime": "2024-10-01T21:27:37.26814051Z",
+        "endtime": "2024-10-01T21:27:37.268228935Z"
+      },
+      {
+        "type": "https://witness.dev/attestations/git/v0.1",
+        "attestation": {
+          "commithash": "2d7abd0bb5920fd5aaa5d4963d8ab9e674722074",
+          "author": "John Kjell",
+          "authoremail": "john@testifysec.com",
+          "committername": "GitHub",
+          "committeremail": "noreply@github.com",
+          "commitdate": "2024-10-01 17:26:11 -0400 -0400",
+          "commitmessage": "Revert demo changes to good state (#17)\\n\\nSigned-off-by: John Kjell <john@testifysec.com>",
+          "status": {
+            "LICENSE": {
+              "staging": "unmodified",
+              "worktree": "modified"
+            },
+            "README.md": {
+              "staging": "unmodified",
+              "worktree": "modified"
+            },
+            "witness": {
+              "staging": "untracked",
+              "worktree": "untracked"
+            }
+          },
+          "commitdigest": {
+            "sha1": "2d7abd0bb5920fd5aaa5d4963d8ab9e674722074"
+          },
+          "signature": "-----BEGIN PGP SIGNATURE-----\\n\\nwsFcBAABCAAQBQJm/GjzCRC1aQ7uu5UhlAAAUYQQAKqROh4l6nvrgsYzzIArlEoc\\nsGcU9zQ5ZJhb5074aTxKf2YbmpRf+hBgRvKnVL4adwzMA5Cr9YItFt7aA0PhFWoj\\nKmsUMM+ZC6y6j7z7ReeZumJ1ZW/c8PbYza2OSTowS4mu+hFY5t223XXnspwaF2KY\\nc3vKUh4031VSMbL4DE/c9/sPWbYIG/c/u0zXNLwTTByjCP1+qJH9euGMAQ6Jf9TC\\nLGIda1KwhcPF9Z4pUa3R+EjFyT8lg/640qJyJgQOdqnRNkSQdI6pNTNFHzN8OQ2u\\nXzKvsAT71OgaxMJ3ET5aWY0YqWnBBb8uv8cXYc3vcSZsAge/jPpVe6cV2S/8TjoI\\nCJvoA1dVLubfkGWN27qOmsM90EyQSEEI/T3fNlxu93tUry8akXX4Fr2t8jEZoHsm\\nJ0LnTOD5n3ietDFjzB2Ks8Jr51mYNgMeTLer7wX6xPOAFieSJLIvv4bp2YVP2FrO\\nwny9tM9iHpYpsZKOYmBW4vy2XOXPRL0yjaFyjBxrghK3rcDKqRpLM3tb9W5NDozI\\nBQWzqWU2N38/TMxf0jfyVw1LyLoH8aq9tbSAI4oeLsflYBbW6YNJgcj9meGIYXQ+\\niRmMhfUc3+m9SuANNfLX0jsoSR6i2wFBErcZfPLOsVZZhYb/WCbmO9RksX+aYV3b\\nIHQdNjgaduXBI5Tb89P2\\n=1PQ8\\n-----END PGP SIGNATURE-----\\n\\n",
+          "parenthashes": [
+            "dec8c457eacb46ba643976641d10d6b62513fdc9"
+          ],
+          "treehash": "7e1c04dff4de18caf4ab2148822fde20eb1fdc88",
+          "refs": [
+            "refs/heads/ossff-demo",
+            "refs/remotes/origin/ossff-demo"
+          ],
+          "remotes": [
+            "https://github.com/testifysec/swf"
+          ],
+          "branch": "ossff-demo"
+        },
+        "starttime": "2024-10-01T21:27:37.268019133Z",
+        "endtime": "2024-10-01T21:27:37.425226119Z"
+      },
+      {
+        "type": "https://witness.dev/attestations/github/v0.1",
+        "attestation": {
+          "jwt": {
+            "claims": {
+              "actor": "jkjell",
+              "actor_id": "135588",
+              "aud": "witness",
+              "base_ref": "",
+              "event_name": "push",
+              "exp": 1727818357,
+              "head_ref": "",
+              "iat": 1727818057,
+              "iss": "https://token.actions.githubusercontent.com",
+              "job_workflow_ref": "testifysec/swf/.github/workflows/pipeline.yml@refs/heads/ossff-demo",
+              "job_workflow_sha": "2d7abd0bb5920fd5aaa5d4963d8ab9e674722074",
+              "jti": "bd382493-48d5-43ae-83b2-7adad659d868",
+              "nbf": 1727817457,
+              "ref": "refs/heads/ossff-demo",
+              "ref_protected": "false",
+              "ref_type": "branch",
+              "repository": "testifysec/swf",
+              "repository_id": "706339980",
+              "repository_owner": "testifysec",
+              "repository_owner_id": "87545603",
+              "repository_visibility": "public",
+              "run_attempt": "1",
+              "run_id": "11133726521",
+              "run_number": "130",
+              "runner_environment": "github-hosted",
+              "sha": "2d7abd0bb5920fd5aaa5d4963d8ab9e674722074",
+              "sub": "repo:testifysec/swf:ref:refs/heads/ossff-demo",
+              "workflow": "pipeline",
+              "workflow_ref": "testifysec/swf/.github/workflows/pipeline.yml@refs/heads/ossff-demo",
+              "workflow_sha": "2d7abd0bb5920fd5aaa5d4963d8ab9e674722074"
+            },
+            "verifiedBy": {
+              "jwksUrl": "https://token.actions.githubusercontent.com/.well-known/jwks",
+              "jwk": {
+                "use": "sig",
+                "kty": "RSA",
+                "kid": "1F2AB83404C08EC9EA0BB99DAED02186B091DBF4",
+                "alg": "RS256",
+                "n": "u8zSYn5JR_O5yywSeOhmWWd7OMoLblh4iGTeIhTOVon-5e54RK30YQDeUCjpb9u3vdHTO7XS7i6EzkwLbsUOir27uhqoFGGWXSAZrPocOobSFoLC5l0NvSKRqVtpoADOHcAh59vLbr8dz3xtEEGx_qlLTzfFfWiCIYWiy15C2oo1eNPxzQfOvdu7Yet6Of4musV0Es5_mNETpeHOVEri8PWfxzw485UHIj3socl4Lk_I3iDyHfgpT49tIJYhHE5NImLNdwMha1cBCIbJMy1dJCfdoK827Hi9qKyBmftNQPhezGVRsOjsf2BfUGzGP5pCGrFBjEOcLhj_3j-TJebgvQ",
+                "e": "AQAB",
+                "x5c": [
+                  "MIIDrDCCApSgAwIBAgIQAP4blP36Q3WmMOhWf0RBMzANBgkqhkiG9w0BAQsFADA2MTQwMgYDVQQDEyt2c3RzLXZzdHNnaHJ0LWdoLXZzby1vYXV0aC52aXN1YWxzdHVkaW8uY29tMB4XDTIzMTAyNDE0NTI1NVoXDTI1MTAyNDE1MDI1NVowNjE0MDIGA1UEAxMrdnN0cy12c3RzZ2hydC1naC12c28tb2F1dGgudmlzdWFsc3R1ZGlvLmNvbTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBALvM0mJ+SUfzucssEnjoZllnezjKC25YeIhk3iIUzlaJ/uXueESt9GEA3lAo6W/bt73R0zu10u4uhM5MC27FDoq9u7oaqBRhll0gGaz6HDqG0haCwuZdDb0ikalbaaAAzh3AIefby26/Hc98bRBBsf6pS083xX1ogiGFosteQtqKNXjT8c0Hzr3bu2Hrejn+JrrFdBLOf5jRE6XhzlRK4vD1n8c8OPOVByI97KHJeC5PyN4g8h34KU+PbSCWIRxOTSJizXcDIWtXAQiGyTMtXSQn3aCvNux4vaisgZn7TUD4XsxlUbDo7H9gX1Bsxj+aQhqxQYxDnC4Y/94/kyXm4L0CAwEAAaOBtTCBsjAOBgNVHQ8BAf8EBAMCBaAwCQYDVR0TBAIwADAdBgNVHSUEFjAUBggrBgEFBQcDAQYIKwYBBQUHAwIwNgYDVR0RBC8wLYIrdnN0cy12c3RzZ2hydC1naC12c28tb2F1dGgudmlzdWFsc3R1ZGlvLmNvbTAfBgNVHSMEGDAWgBSmWMP5CXuaSzoLKwcLXYZnoeCJmDAdBgNVHQ4EFgQUpljD+Ql7mks6CysHC12GZ6HgiZgwDQYJKoZIhvcNAQELBQADggEBAINwybFwYpXJkvauL5QbtrykIDYeP8oFdVIeVY8YI9MGfx7OwWDsNBVXv2B62zAZ49hK5G87++NmFI/FHnGOCISDYoJkRSCy2Nbeyr7Nx2VykWzUQqHLZfvr5KqW4Gj1OFHUqTl8lP3FWDd/P+lil3JobaSiICQshgF0GnX2a8ji8mfXpJSP20gzrLw84brmtmheAvJ9X/sLbM/RBkkT6g4NV2QbTMqo6k601qBNQBsH+lTDDWPCkRoAlW6a0z9bWIhGHWJ2lcR70zagcxIVl5/Fq35770/aMGroSrIx3JayOEqsvgIthYBKHzpT2VFwUz1VpBpNVJg9/u6jCwLY7QA="
+                ],
+                "x5t": "Hyq4NATAjsnqC7mdrtAhhrCR2_Q"
+              }
+            }
+          },
+          "ciconfigpath": "",
+          "pipelineid": "11133726521",
+          "pipelinename": "pipeline",
+          "pipelineurl": "https://github.com/testifysec/swf/actions/runs/11133726521",
+          "projecturl": "https://github.com/testifysec/swf",
+          "runnerid": "GitHub Actions 5",
+          "cihost": "",
+          "ciserverurl": "https://github.com",
+          "runnerarch": "X64",
+          "runneros": "Linux"
+        },
+        "starttime": "2024-10-01T21:27:37.268042829Z",
+        "endtime": "2024-10-01T21:27:37.58476392Z"
+      },
+      {
+        "type": "https://witness.dev/attestations/material/v0.1",
+        "attestation": {
+          ".git/FETCH_HEAD": {
+            "sha256": "4b185e22b8a9827ac6ff147c01e11a9de028743329eba1ae4fa5366a0405874a"
+          },
+          ".git/HEAD": {
+            "sha256": "f5cd81777313bb739f1ab863e0ed45e7c7992885a9182c0855dc6534a40d6ddd"
+          },
+          ".git/config": {
+            "sha256": "5a6466870789b4658fffa4b8037bfcc9d3191fe4a09caac18bd4df3cf26d0376"
+          },
+          ".git/description": {
+            "sha256": "85ab6c163d43a17ea9cf7788308bca1466f1b0a8d1cc92e26e9bf63da4062aee"
+          },
+          ".git/hooks/applypatch-msg.sample": {
+            "sha256": "0223497a0b8b033aa58a3a521b8629869386cf7ab0e2f101963d328aa62193f7"
+          },
+          ".git/hooks/commit-msg.sample": {
+            "sha256": "1f74d5e9292979b573ebd59741d46cb93ff391acdd083d340b94370753d92437"
+          },
+          ".git/hooks/fsmonitor-watchman.sample": {
+            "sha256": "e0549964e93897b519bd8e333c037e51fff0f88ba13e086a331592bf801fa1d0"
+          },
+          ".git/hooks/post-update.sample": {
+            "sha256": "81765af2daef323061dcbc5e61fc16481cb74b3bac9ad8a174b186523586f6c5"
+          },
+          ".git/hooks/pre-applypatch.sample": {
+            "sha256": "e15c5b469ea3e0a695bea6f2c82bcf8e62821074939ddd85b77e0007ff165475"
+          },
+          ".git/hooks/pre-commit.sample": {
+            "sha256": "57185b7b9f05239d7ab52db045f5b89eb31348d7b2177eab214f5eb872e1971b"
+          },
+          ".git/hooks/pre-merge-commit.sample": {
+            "sha256": "d3825a70337940ebbd0a5c072984e13245920cdf8898bd225c8d27a6dfc9cb53"
+          },
+          ".git/hooks/pre-push.sample": {
+            "sha256": "ecce9c7e04d3f5dd9d8ada81753dd1d549a9634b26770042b58dda00217d086a"
+          },
+          ".git/hooks/pre-rebase.sample": {
+            "sha256": "4febce867790052338076f4e66cc47efb14879d18097d1d61c8261859eaaa7b3"
+          },
+          ".git/hooks/pre-receive.sample": {
+            "sha256": "a4c3d2b9c7bb3fd8d1441c31bd4ee71a595d66b44fcf49ddb310252320169989"
+          },
+          ".git/hooks/prepare-commit-msg.sample": {
+            "sha256": "e9ddcaa4189fddd25ed97fc8c789eca7b6ca16390b2392ae3276f0c8e1aa4619"
+          },
+          ".git/hooks/push-to-checkout.sample": {
+            "sha256": "a53d0741798b287c6dd7afa64aee473f305e65d3f49463bb9d7408ec3b12bf5f"
+          },
+          ".git/hooks/sendemail-validate.sample": {
+            "sha256": "44ebfc923dc5466bc009602f0ecf067b9c65459abfe8868ddc49b78e6ced7a92"
+          },
+          ".git/hooks/update.sample": {
+            "sha256": "8d5f2fa83e103cf08b57eaa67521df9194f45cbdbcb37da52ad586097a14d106"
+          },
+          ".git/index": {
+            "sha256": "b9a4604796eaf569c7e484f9a641915766efdea8b059575ee9610f7d3f7ae0bd"
+          },
+          ".git/info/exclude": {
+            "sha256": "6671fe83b7a07c8932ee89164d1f2793b2318058eb8b98dc5c06ee0a5a3b0ec1"
+          },
+          ".git/logs/HEAD": {
+            "sha256": "c18978b70fe1cd415b8f0a63361d5050b798a230f6c8c5aef0f2973bcb25f827"
+          },
+          ".git/logs/refs/heads/ossff-demo": {
+            "sha256": "5544281ff78fc157960f0c136364e8eb492914ff7112f27ff7022978425944fc"
+          },
+          ".git/logs/refs/remotes/origin/ossff-demo": {
+            "sha256": "548dbab65887b1368fbd08ba25d13db876f4c3651ab394bfacd7a5a83d2139aa"
+          },
+          ".git/objects/19/b89b34d39e74f6d0aab2ca088b7f72f13da9ec": {
+            "sha256": "8818b4001036d1da3f11df0a8537f0c7980459f72203b404d1994eb030b0ab2c"
+          },
+          ".git/objects/24/7d2dd54ff9763b1236422f96ab2c98c936b24c": {
+            "sha256": "aa765dac81a80cb5e567bf6ce9825463d908b92e64c6ed7f447d929f5cd728a0"
+          },
+          ".git/objects/26/1eeb9e9f8b2b4b0d119366dda99c6fd7d35c64": {
+            "sha256": "72e9c36b6c0617f163a591a78ed16af1d620883d2062410f9a59767e8494174f"
+          },
+          ".git/objects/2d/7abd0bb5920fd5aaa5d4963d8ab9e674722074": {
+            "sha256": "0f308979980a903da09692884b0445f0fae1d70be4b6d8fd9af9d410cc2ee779"
+          },
+          ".git/objects/6e/66712fdfbc39e7d37b6b438c936469ef5034aa": {
+            "sha256": "5c3c7d79476a3bb8f34a3acae0bd7011d8dff1787723de2451070e876a4baa6d"
+          },
+          ".git/objects/76/ccaba52069677c0cd94f478ec57816058df80e": {
+            "sha256": "4338b911baf69733b8af0115ea008a235b8720e8523e0e54976b22daddefcc28"
+          },
+          ".git/objects/7e/1c04dff4de18caf4ab2148822fde20eb1fdc88": {
+            "sha256": "d3f47b5dc9e891a748747704ac84378838f639e6baa078b0709f9a42f3596156"
+          },
+          ".git/objects/89/5737a7f19eaeee4170ecba182be24e5ef73a4f": {
+            "sha256": "6fab009853901973b791089d14b7a794b31298b26b4e7f1dbd1226de84196e9d"
+          },
+          ".git/objects/9e/a8a633fb3bb77ab358da0bfc5550be630b035f": {
+            "sha256": "b0ff9d9a7d8223112dc36dd5aa46f37fd325f2e9e02970e36d74caa90566491b"
+          },
+          ".git/objects/a2/5ce89f3dd9ae7d313024cd5eb4c56054da596e": {
+            "sha256": "70e39e0c54052c5d94513297d6658d64626769b6a58631225ca6068b7a1baaba"
+          },
+          ".git/objects/a4/a0f9412f3397b19bc3041779312e7018781b4b": {
+            "sha256": "aa6af0e3f0ff5a7cf58b1fd5f2aecaead8f1ef866f537d4b5cedc4618a2e7969"
+          },
+          ".git/objects/a5/aa07a3390431aa5533f08a01b48d9349e6d81d": {
+            "sha256": "a31564ebb26c59f42ac904cfc61317d9995d886f4f4b4329a28eda8c3a99a45e"
+          },
+          ".git/objects/b7/243e25b256e48478443fc91fab8d3e8d9f1ff3": {
+            "sha256": "036f08256fe8c294fd7285f87927361c52992fc227c57732c9623b42becdaa30"
+          },
+          ".git/objects/c0/1c1e085561fd32217f3ca833fe198fd556c99b": {
+            "sha256": "becd9862d48c4f4d59cfa081b2fa769050d202d8d1696ff34d11707ad3a90ee8"
+          },
+          ".git/objects/cd/885540dacd0d810116d13918c59b6acf253b3e": {
+            "sha256": "3fdaeec6a87b7cd98882cb5e8df2ac49a172915940818af62eada64de045ec7a"
+          },
+          ".git/objects/d6/9c31c5a526882fbd2ebefbd4fa37e87ccd42d0": {
+            "sha256": "869416ad9ff669eb5ba742a74515844698798db7d257ebc123fa59b3da78a34c"
+          },
+          ".git/objects/dd/101e65cdee22fe58b4a00875cb81d5491ec362": {
+            "sha256": "9f75381a0e066f86306ab6d9370bdd5d6126eb571d8c55c794ef6f7c880b6f27"
+          },
+          ".git/objects/e3/4c2849fe7ab17d614571832280379a4ec9d867": {
+            "sha256": "2e9233f3839071fb1c15dea3eea09a3c17e96e10518b8c013ad80bd23e54f2bc"
+          },
+          ".git/objects/e4/d2fe44347a32c0dac167f2590bd4a1aca41b18": {
+            "sha256": "9c0165e716aaf76d5d106914693420ff177a5b7e7a8f1f5b0e4a89ea92adfab5"
+          },
+          ".git/objects/ec/9839a6e4015dace85fbe8d3ef6f285028c0a5f": {
+            "sha256": "63e517b67be6720ecb0a3eaab02bbbc6c5cb77156d24378fb5ccd0afd9091247"
+          },
+          ".git/objects/ee/19b94f296fe7c22947ff7fbca1943c0b74b9b5": {
+            "sha256": "f37e2b80db5d23dfa0b9566806e3dacdc22b0a0f0afc228590ef37a9fe2e35aa"
+          },
+          ".git/refs/heads/ossff-demo": {
+            "sha256": "5cf36192c4deaaf3f70315e8596a327410b80a50721800bb5132cddafe88215a"
+          },
+          ".git/refs/remotes/origin/ossff-demo": {
+            "sha256": "5cf36192c4deaaf3f70315e8596a327410b80a50721800bb5132cddafe88215a"
+          },
+          ".git/shallow": {
+            "sha256": "5cf36192c4deaaf3f70315e8596a327410b80a50721800bb5132cddafe88215a"
+          },
+          ".github/dependabot.yml": {
+            "sha256": "a69cb3493f5830285607bae1bebd52a50f0b03dbe6f6a23f8376007fcaaf2499"
+          },
+          ".github/workflows/pipeline.yml": {
+            "sha256": "52b9cb31f56d92e359823eb6c5c5a306b3c376651fdafece4e60552dce1d8bed"
+          },
+          ".gitignore": {
+            "sha256": "67757a4c2cceb21cb7e4f652bd14048e1c0c1cd9d40365312886e48ddf9b4264"
+          },
+          "Dockerfile": {
+            "sha256": "8c81e2a00f2b6c19ae6a4bf7e337af51d9cc744afdd54264ecc207ee3a83b62f"
+          },
+          "LICENSE": {
+            "sha256": "b79aa48ff5bd91c87062c280d1cb80c7f13608e0faf8f3473eb6534c6e3f5414"
+          },
+          "Makefile": {
+            "sha256": "6b9477762d8b2595ab2e4f0a59c258d422f9f11a14052c157c37167a3de3b9aa"
+          },
+          "README.md": {
+            "sha256": "ef69fc447ea81863b3338542ff2bc4777b48b2b833678f7403f2fc698e992f60"
+          },
+          "go.mod": {
+            "sha256": "0ef8a960f5984bb77cc072f30d1836e4b6983a11931dc2ee211a6b175c4ba324"
+          },
+          "go.sum": {
+            "sha256": "5aad055ee2fa47935a04b1fabe563211ae6b9f213001cac8a58dea2a5fe35cdc"
+          },
+          "main.go": {
+            "sha256": "60aeb5c9f1edf7f28033f0daafa6dbe053c9ac1012ea11a1f5ca2cbb87a4c308"
+          },
+          "main_test.go": {
+            "sha256": "826f215de4de661ba24545430a2ede1c829830567e4d20f40fc0e613b3c76e83"
+          },
+          "policy-signed.json": {
+            "sha256": "d1474fc27953fd290dc2392ca8b3b57fa45d2e1646d598d4931830e5ae5f1d07"
+          },
+          "policy.json": {
+            "sha256": "a9b9cf48daddb3a8b2ea8c85d8eaf30d388efc9ffaccea1cfdc1b6d8e576d1a0"
+          },
+          "policy.rego": {
+            "sha256": "181287ccf6c041e03fd21e9c00ff29d8f70e8e31c26f393bcaf6b60b5b775ac2"
+          },
+          "pr-policy-signed.json": {
+            "sha256": "fe1a42b48e7dc2ca436cf16aa79f59a5415880d05b3c9f3a49becfd8c93ec2f8"
+          },
+          "pr-policy.json": {
+            "sha256": "520ceaea741e897044e46327924f8825aa5fcf4027ffd7c809fe2bfed588942c"
+          },
+          "swfpublic.pem": {
+            "sha256": "6516d0812cb5a0d01f7f014f88e04c5d4c2d89a64e788a12950ba950fb43ef45"
+          },
+          "witness": {
+            "sha256": "7e309018bcb34d3f8ca6c7bc8e1ca9545583c1d0accae12d3eedcb0c8899ade1"
+          }
+        },
+        "starttime": "2024-10-01T21:27:37.585225151Z",
+        "endtime": "2024-10-01T21:27:37.619954137Z"
+      },
+      {
+        "type": "https://witness.dev/attestations/command-run/v0.1",
+        "attestation": {
+          "cmd": [
+            "/bin/sh",
+            "-c",
+            "docker buildx build -t ghcr.io/testifysec/swf/software:ossff-demo -o type=docker,dest=image.tar --push ."
+          ],
+          "stderr": "#0 building with \"builder-fe45c69d-3c17-498c-9ff1-9b137c4777e0\" instance using docker-container driver\\n\\n#1 [internal] load build definition from Dockerfile\\n#1 transferring dockerfile: 599B done\\n#1 WARN: FromAsCasing: 'as' and 'FROM' keywords' casing do not match (line 1)\\n#1 DONE 0.0s\\n\\n#2 [internal] load metadata for cgr.dev/chainguard/static@sha256:676e989769aa9a5254fbfe14abb698804674b91c4d574bb33368d87930c5c472\\n#2 DONE 1.6s\\n\\n#3 [internal] load metadata for cgr.dev/chainguard/go@sha256:605d81422aba573c17bfd6029a217e94a9575179a98355a99acbb6e028ca883b\\n#3 DONE 1.8s\\n\\n#4 [internal] load .dockerignore\\n#4 transferring context: 2B done\\n#4 DONE 0.0s\\n\\n#5 [builder 1/4] FROM cgr.dev/chainguard/go@sha256:605d81422aba573c17bfd6029a217e94a9575179a98355a99acbb6e028ca883b\\n#5 resolve cgr.dev/chainguard/go@sha256:605d81422aba573c17bfd6029a217e94a9575179a98355a99acbb6e028ca883b done\\n#5 sha256:ce9e51004d4d0fdde6fe08ebce2868d9b8f98876e90a073c35e172948c4eb2bd 0B / 231.52MB 0.2s\\n#5 ...\\n\\n#6 [internal] load build context\\n#6 transferring context: 44.10MB 0.4s done\\n#6 DONE 0.4s\\n\\n#5 [builder 1/4] FROM cgr.dev/chainguard/go@sha256:605d81422aba573c17bfd6029a217e94a9575179a98355a99acbb6e028ca883b\\n#5 sha256:ce9e51004d4d0fdde6fe08ebce2868d9b8f98876e90a073c35e172948c4eb2bd 18.87MB / 231.52MB 0.5s\\n#5 ...\\n\\n#7 [stage-1 1/2] FROM cgr.dev/chainguard/static@sha256:676e989769aa9a5254fbfe14abb698804674b91c4d574bb33368d87930c5c472\\n#7 resolve cgr.dev/chainguard/static@sha256:676e989769aa9a5254fbfe14abb698804674b91c4d574bb33368d87930c5c472 done\\n#7 sha256:b026e15595e8b43ac1b2c75a93acf2abc3c40a6f520ffb98e54edc4b1e7b9dd8 631.31kB / 631.31kB 0.3s done\\n#7 extracting sha256:b026e15595e8b43ac1b2c75a93acf2abc3c40a6f520ffb98e54edc4b1e7b9dd8 0.2s done\\n#7 DONE 0.6s\\n\\n#5 [builder 1/4] FROM cgr.dev/chainguard/go@sha256:605d81422aba573c17bfd6029a217e94a9575179a98355a99acbb6e028ca883b\\n#5 sha256:ce9e51004d4d0fdde6fe08ebce2868d9b8f98876e90a073c35e172948c4eb2bd 39.85MB / 231.52MB 0.8s\\n#5 sha256:ce9e51004d4d0fdde6fe08ebce2868d9b8f98876e90a073c35e172948c4eb2bd 58.72MB / 231.52MB 1.1s\\n#5 sha256:ce9e51004d4d0fdde6fe08ebce2868d9b8f98876e90a073c35e172948c4eb2bd 81.79MB / 231.52MB 1.4s\\n#5 sha256:ce9e51004d4d0fdde6fe08ebce2868d9b8f98876e90a073c35e172948c4eb2bd 96.47MB / 231.52MB 1.7s\\n#5 sha256:ce9e51004d4d0fdde6fe08ebce2868d9b8f98876e90a073c35e172948c4eb2bd 109.05MB / 231.52MB 1.8s\\n#5 sha256:ce9e51004d4d0fdde6fe08ebce2868d9b8f98876e90a073c35e172948c4eb2bd 133.17MB / 231.52MB 2.1s\\n#5 sha256:ce9e51004d4d0fdde6fe08ebce2868d9b8f98876e90a073c35e172948c4eb2bd 145.75MB / 231.52MB 2.3s\\n#5 sha256:ce9e51004d4d0fdde6fe08ebce2868d9b8f98876e90a073c35e172948c4eb2bd 159.38MB / 231.52MB 2.4s\\n#5 sha256:ce9e51004d4d0fdde6fe08ebce2868d9b8f98876e90a073c35e172948c4eb2bd 175.11MB / 231.52MB 2.7s\\n#5 sha256:ce9e51004d4d0fdde6fe08ebce2868d9b8f98876e90a073c35e172948c4eb2bd 195.04MB / 231.52MB 3.0s\\n#5 sha256:ce9e51004d4d0fdde6fe08ebce2868d9b8f98876e90a073c35e172948c4eb2bd 211.81MB / 231.52MB 3.3s\\n#5 sha256:ce9e51004d4d0fdde6fe08ebce2868d9b8f98876e90a073c35e172948c4eb2bd 230.69MB / 231.52MB 3.6s\\n#5 sha256:ce9e51004d4d0fdde6fe08ebce2868d9b8f98876e90a073c35e172948c4eb2bd 231.52MB / 231.52MB 3.9s done\\n#5 extracting sha256:ce9e51004d4d0fdde6fe08ebce2868d9b8f98876e90a073c35e172948c4eb2bd\\n#5 extracting sha256:ce9e51004d4d0fdde6fe08ebce2868d9b8f98876e90a073c35e172948c4eb2bd 3.4s done\\n#5 DONE 7.3s\\n\\n#8 [builder 2/4] WORKDIR /build\\n#8 DONE 1.6s\\n\\n#9 [builder 3/4] COPY . .\\n#9 DONE 0.1s\\n\\n#10 [builder 4/4] RUN go build -o bin/software\\n#10 0.763 go: downloading github.com/common-nighthawk/go-figure v0.0.0-20210622060536-734e95fb86be\\n#10 DONE 5.1s\\n\\n#11 [stage-1 2/2] COPY --from=builder /build/bin/software /software\\n#11 DONE 0.0s\\n\\n#12 exporting to docker image format\\n#12 exporting layers 0.1s done\\n#12 exporting manifest sha256:c17c9d35e2ccd947fad5954a53fba4ab4a8d4cbb0088985abb4fd3d3f24a03c7 done\\n#12 exporting config sha256:e923c3663af679b10113fd986f29bebd61928371d15c7e60e0c06e6a321a555e\\n#12 exporting config sha256:e923c3663af679b10113fd986f29bebd61928371d15c7e60e0c06e6a321a555e 0.5s done\\n#12 sending tarball 0.0s done\\n#12 DONE 0.6s\\n\\n#13 [auth] testifysec/swf/software:pull,push token for ghcr.io\\n#13 DONE 0.0s\\n\\n#14 exporting to image\\n#14 exporting layers 0.1s done\\n#14 exporting manifest sha256:db0f8065024380aad55553fbc9a8e5a6354c6240413fb77e22d66aaa9e9d0d33 done\\n#14 exporting config sha256:e923c3663af679b10113fd986f29bebd61928371d15c7e60e0c06e6a321a555e 0.5s done\\n#14 exporting attestation manifest sha256:9e8d3e090e0cb6d50ff06733b2927f324025aec875071fa4c243ced55cac7db9 0.0s done\\n#14 exporting manifest list sha256:9b0210d5d46f6795893f5d093dec081bed1d40496d9740dabc504cc6d96a29f4 done\\n#14 pushing layers\\n#14 pushing layers 1.4s done\\n#14 pushing manifest for ghcr.io/testifysec/swf/software:ossff-demo@sha256:9b0210d5d46f6795893f5d093dec081bed1d40496d9740dabc504cc6d96a29f4\\n#14 pushing manifest for ghcr.io/testifysec/swf/software:ossff-demo@sha256:9b0210d5d46f6795893f5d093dec081bed1d40496d9740dabc504cc6d96a29f4 1.4s done\\n#14 DONE 3.5s\\n\\n \\u001b[33m1 warning found (use docker --debug to expand):\\n\\u001b[0m - FromAsCasing: 'as' and 'FROM' keywords' casing do not match (line 1)\\n",
+          "exitcode": 0
+        },
+        "starttime": "2024-10-01T21:27:37.620090451Z",
+        "endtime": "2024-10-01T21:27:57.222847096Z"
+      },
+      {
+        "type": "https://witness.dev/attestations/product/v0.1",
+        "attestation": {
+          "image.tar": {
+            "mime_type": "application/x-tar",
+            "digest": {
+              "sha256": "eebfc8dfcf1070235208bc38f64526117d34821ee4a963d99808616d21ec8414"
+            }
+          }
+        },
+        "starttime": "2024-10-01T21:27:57.222959095Z",
+        "endtime": "2024-10-01T21:27:57.258688466Z"
+      },
+      {
+        "type": "https://slsa.dev/provenance/v1.0",
+        "attestation": {
+          "build_definition": {
+            "build_type": "https://witness.dev/slsa-build@v0.1",
+            "external_parameters": {
+              "command": "/bin/sh -c docker buildx build -t ghcr.io/testifysec/swf/software:ossff-demo -o type=docker,dest=image.tar --push ."
+            },
+            "internal_parameters": {
+              "env": {
+                "ACCEPT_EULA": "Y",
+                "ACTIONS_CACHE_URL": "https://acghubeus1.actions.githubusercontent.com/TPWTd7TbODB00LV4cLh5O4CXrF54b671YAeQzCb111oFRUIXT0/",
+                "ACTIONS_ID_TOKEN_REQUEST_URL": "https://pipelinesghubeus12.actions.githubusercontent.com/TPWTd7TbODB00LV4cLh5O4CXrF54b671YAeQzCb111oFRUIXT0/00000000-0000-0000-0000-000000000000/_apis/distributedtask/hubs/Actions/plans/60eb0bd6-2e75-4bca-83e8-84418b8a4b32/jobs/6604c111-019b-5ed5-ae03-3fa9f8925512/idtoken?api-version=2.0",
+                "ACTIONS_RESULTS_URL": "https://results-receiver.actions.githubusercontent.com/",
+                "ACTIONS_RUNNER_ACTION_ARCHIVE_CACHE": "/opt/actionarchivecache",
+                "ACTIONS_RUNTIME_URL": "https://pipelinesghubeus12.actions.githubusercontent.com/TPWTd7TbODB00LV4cLh5O4CXrF54b671YAeQzCb111oFRUIXT0/",
+                "AGENT_TOOLSDIRECTORY": "/opt/hostedtoolcache",
+                "ANDROID_HOME": "/usr/local/lib/android/sdk",
+                "ANDROID_NDK": "/usr/local/lib/android/sdk/ndk/27.1.12297006",
+                "ANDROID_NDK_HOME": "/usr/local/lib/android/sdk/ndk/27.1.12297006",
+                "ANDROID_NDK_LATEST_HOME": "/usr/local/lib/android/sdk/ndk/27.1.12297006",
+                "ANDROID_NDK_ROOT": "/usr/local/lib/android/sdk/ndk/27.1.12297006",
+                "ANDROID_SDK_ROOT": "/usr/local/lib/android/sdk",
+                "ANT_HOME": "/usr/share/ant",
+                "AZURE_EXTENSION_DIR": "/opt/az/azcliextensions",
+                "BOOTSTRAP_HASKELL_NONINTERACTIVE": "1",
+                "CHROMEWEBDRIVER": "/usr/local/share/chromedriver-linux64",
+                "CHROME_BIN": "/usr/bin/google-chrome",
+                "CI": "true",
+                "CONDA": "/usr/share/miniconda",
+                "DEBIAN_FRONTEND": "noninteractive",
+                "DEPLOYMENT_BASEPATH": "/opt/runner",
+                "DOCKER_METADATA_OUTPUT_ANNOTATIONS": "manifest:org.opencontainers.image.created=2024-10-01T21:27:33.276Z\\nmanifest:org.opencontainers.image.description=\\nmanifest:org.opencontainers.image.licenses=Apache-2.0\\nmanifest:org.opencontainers.image.revision=2d7abd0bb5920fd5aaa5d4963d8ab9e674722074\\nmanifest:org.opencontainers.image.source=https://github.com/testifysec/swf\\nmanifest:org.opencontainers.image.title=swf\\nmanifest:org.opencontainers.image.url=https://github.com/testifysec/swf\\nmanifest:org.opencontainers.image.version=ossff-demo",
+                "DOCKER_METADATA_OUTPUT_BAKE_FILE": "/home/runner/work/_temp/docker-actions-toolkit-NOtSHY/docker-metadata-action-bake.json",
+                "DOCKER_METADATA_OUTPUT_BAKE_FILE_ANNOTATIONS": "/home/runner/work/_temp/docker-actions-toolkit-NOtSHY/docker-metadata-action-bake-annotations.json",
+                "DOCKER_METADATA_OUTPUT_BAKE_FILE_LABELS": "/home/runner/work/_temp/docker-actions-toolkit-NOtSHY/docker-metadata-action-bake-labels.json",
+                "DOCKER_METADATA_OUTPUT_BAKE_FILE_TAGS": "/home/runner/work/_temp/docker-actions-toolkit-NOtSHY/docker-metadata-action-bake-tags.json",
+                "DOCKER_METADATA_OUTPUT_JSON": "{\"tags\":[\"ghcr.io/testifysec/swf/software:ossff-demo\"],\"labels\":{\"org.opencontainers.image.created\":\"2024-10-01T21:27:33.276Z\",\"org.opencontainers.image.description\":\"\",\"org.opencontainers.image.licenses\":\"Apache-2.0\",\"org.opencontainers.image.revision\":\"2d7abd0bb5920fd5aaa5d4963d8ab9e674722074\",\"org.opencontainers.image.source\":\"https://github.com/testifysec/swf\",\"org.opencontainers.image.title\":\"swf\",\"org.opencontainers.image.url\":\"https://github.com/testifysec/swf\",\"org.opencontainers.image.version\":\"ossff-demo\"},\"annotations\":[\"manifest:org.opencontainers.image.created=2024-10-01T21:27:33.276Z\",\"manifest:org.opencontainers.image.description=\",\"manifest:org.opencontainers.image.licenses=Apache-2.0\",\"manifest:org.opencontainers.image.revision=2d7abd0bb5920fd5aaa5d4963d8ab9e674722074\",\"manifest:org.opencontainers.image.source=https://github.com/testifysec/swf\",\"manifest:org.opencontainers.image.title=swf\",\"manifest:org.opencontainers.image.url=https://github.com/testifysec/swf\",\"manifest:org.opencontainers.image.version=ossff-demo\"]}",
+                "DOCKER_METADATA_OUTPUT_LABELS": "org.opencontainers.image.created=2024-10-01T21:27:33.276Z\\norg.opencontainers.image.description=\\norg.opencontainers.image.licenses=Apache-2.0\\norg.opencontainers.image.revision=2d7abd0bb5920fd5aaa5d4963d8ab9e674722074\\norg.opencontainers.image.source=https://github.com/testifysec/swf\\norg.opencontainers.image.title=swf\\norg.opencontainers.image.url=https://github.com/testifysec/swf\\norg.opencontainers.image.version=ossff-demo",
+                "DOCKER_METADATA_OUTPUT_TAGS": "ghcr.io/testifysec/swf/software:ossff-demo",
+                "DOCKER_METADATA_OUTPUT_VERSION": "ossff-demo",
+                "DOTNET_MULTILEVEL_LOOKUP": "0",
+                "DOTNET_NOLOGO": "1",
+                "DOTNET_SKIP_FIRST_TIME_EXPERIENCE": "1",
+                "EDGEWEBDRIVER": "/usr/local/share/edge_driver",
+                "GECKOWEBDRIVER": "/usr/local/share/gecko_driver",
+                "GHCUP_INSTALL_BASE_PREFIX": "/usr/local",
+                "GITHUB_ACTION": "__testifysec_witness-run-action",
+                "GITHUB_ACTIONS": "true",
+                "GITHUB_ACTION_REF": "reusable-workflow",
+                "GITHUB_ACTION_REPOSITORY": "testifysec/witness-run-action",
+                "GITHUB_ACTOR": "jkjell",
+                "GITHUB_ACTOR_ID": "135588",
+                "GITHUB_API_URL": "https://api.github.com",
+                "GITHUB_BASE_REF": "",
+                "GITHUB_ENV": "/home/runner/work/_temp/_runner_file_commands/set_env_eb697098-5601-4616-8da4-20c1b1532c50",
+                "GITHUB_EVENT_NAME": "push",
+                "GITHUB_EVENT_PATH": "/home/runner/work/_temp/_github_workflow/event.json",
+                "GITHUB_GRAPHQL_URL": "https://api.github.com/graphql",
+                "GITHUB_HEAD_REF": "",
+                "GITHUB_JOB": "build-image",
+                "GITHUB_OUTPUT": "/home/runner/work/_temp/_runner_file_commands/set_output_eb697098-5601-4616-8da4-20c1b1532c50",
+                "GITHUB_PATH": "/home/runner/work/_temp/_runner_file_commands/add_path_eb697098-5601-4616-8da4-20c1b1532c50",
+                "GITHUB_REF": "refs/heads/ossff-demo",
+                "GITHUB_REF_NAME": "ossff-demo",
+                "GITHUB_REF_PROTECTED": "false",
+                "GITHUB_REF_TYPE": "branch",
+                "GITHUB_REPOSITORY": "testifysec/swf",
+                "GITHUB_REPOSITORY_ID": "706339980",
+                "GITHUB_REPOSITORY_OWNER": "testifysec",
+                "GITHUB_REPOSITORY_OWNER_ID": "87545603",
+                "GITHUB_RETENTION_DAYS": "90",
+                "GITHUB_RUN_ATTEMPT": "1",
+                "GITHUB_RUN_ID": "11133726521",
+                "GITHUB_RUN_NUMBER": "130",
+                "GITHUB_SERVER_URL": "https://github.com",
+                "GITHUB_SHA": "2d7abd0bb5920fd5aaa5d4963d8ab9e674722074",
+                "GITHUB_STATE": "/home/runner/work/_temp/_runner_file_commands/save_state_eb697098-5601-4616-8da4-20c1b1532c50",
+                "GITHUB_STEP_SUMMARY": "/home/runner/work/_temp/_runner_file_commands/step_summary_eb697098-5601-4616-8da4-20c1b1532c50",
+                "GITHUB_TRIGGERING_ACTOR": "jkjell",
+                "GITHUB_WORKFLOW": "pipeline",
+                "GITHUB_WORKFLOW_REF": "testifysec/swf/.github/workflows/pipeline.yml@refs/heads/ossff-demo",
+                "GITHUB_WORKFLOW_SHA": "2d7abd0bb5920fd5aaa5d4963d8ab9e674722074",
+                "GITHUB_WORKSPACE": "/home/runner/work/swf/swf",
+                "GOROOT_1_20_X64": "/opt/hostedtoolcache/go/1.20.14/x64",
+                "GOROOT_1_21_X64": "/opt/hostedtoolcache/go/1.21.13/x64",
+                "GOROOT_1_22_X64": "/opt/hostedtoolcache/go/1.22.7/x64",
+                "GRADLE_HOME": "/usr/share/gradle-8.10.1",
+                "HOME": "/home/runner",
+                "HOMEBREW_CLEANUP_PERIODIC_FULL_DAYS": "3650",
+                "HOMEBREW_NO_AUTO_UPDATE": "1",
+                "INPUT_ATTESTATIONS": "git github environment oci slsa",
+                "INPUT_CERTIFICATE": "",
+                "INPUT_COMMAND": "/bin/sh -c \"docker buildx build -t ghcr.io/testifysec/swf/software:ossff-demo -o type=docker,dest=image.tar --push .\"\\n",
+                "INPUT_FULCIO": "",
+                "INPUT_INTERMEDIATES": "",
+                "INPUT_KEY": "",
+                "INPUT_OUTFILE": "",
+                "INPUT_STEP": "build-image",
+                "INPUT_TRACE": "false",
+                "INPUT_VERSION": "0.6.0",
+                "INPUT_WORKINGDIR": "",
+                "INVOCATION_ID": "97516d78401f4e1d8b04e03bcb79f371",
+                "ImageOS": "ubuntu22",
+                "ImageVersion": "20240922.1.0",
+                "JAVA_HOME": "/usr/lib/jvm/temurin-11-jdk-amd64",
+                "JAVA_HOME_11_X64": "/usr/lib/jvm/temurin-11-jdk-amd64",
+                "JAVA_HOME_17_X64": "/usr/lib/jvm/temurin-17-jdk-amd64",
+                "JAVA_HOME_21_X64": "/usr/lib/jvm/temurin-21-jdk-amd64",
+                "JAVA_HOME_8_X64": "/usr/lib/jvm/temurin-8-jdk-amd64",
+                "JOURNAL_STREAM": "8:4873",
+                "LANG": "C.UTF-8",
+                "LEIN_HOME": "/usr/local/lib/lein",
+                "LEIN_JAR": "/usr/local/lib/lein/self-installs/leiningen-2.11.2-standalone.jar",
+                "NVM_DIR": "/home/runner/.nvm",
+                "PATH": "/home/runner/work/_actions/testifysec/witness-run-action/reusable-workflow/dist:./:/snap/bin:/home/runner/.local/bin:/opt/pipx_bin:/home/runner/.cargo/bin:/home/runner/.config/composer/vendor/bin:/usr/local/.ghcup/bin:/home/runner/.dotnet/tools:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/bin:/usr/bin",
+                "PERFLOG_LOCATION_SETTING": "RUNNER_PERFLOG",
+                "PIPX_BIN_DIR": "/opt/pipx_bin",
+                "PIPX_HOME": "/opt/pipx",
+                "POWERSHELL_DISTRIBUTION_CHANNEL": "GitHub-Actions-ubuntu22",
+                "PWD": "/home/runner/work/swf/swf",
+                "RUNNER_ARCH": "X64",
+                "RUNNER_ENVIRONMENT": "github-hosted",
+                "RUNNER_NAME": "GitHub Actions 5",
+                "RUNNER_OS": "Linux",
+                "RUNNER_PERFLOG": "/home/runner/perflog",
+                "RUNNER_TEMP": "/home/runner/work/_temp",
+                "RUNNER_TOOL_CACHE": "/opt/hostedtoolcache",
+                "RUNNER_TRACKING_ID": "github_824d6712-62cd-4d39-a153-bb96f713f61f",
+                "RUNNER_USER": "runner",
+                "RUNNER_WORKSPACE": "/home/runner/work/swf",
+                "SELENIUM_JAR_PATH": "/usr/share/java/selenium-server.jar",
+                "SGX_AESM_ADDR": "1",
+                "STATS_D": "false",
+                "STATS_D_D": "false",
+                "STATS_EXT": "true",
+                "STATS_EXTP": "https://provjobdsettingscdn.blob.core.windows.net/settings/provjobdsettings-0.5.189/provjobd.data",
+                "STATS_RDCL": "true",
+                "STATS_TIS": "mining",
+                "STATS_TRP": "true",
+                "STATS_UE": "true",
+                "STATS_V3PS": "true",
+                "STATS_VMD": "true",
+                "STATS_VMFE": "true",
+                "SWIFT_PATH": "/usr/share/swift/usr/bin",
+                "SYSTEMD_EXEC_PID": "609",
+                "USER": "runner",
+                "VCPKG_INSTALLATION_ROOT": "/usr/local/share/vcpkg",
+                "XDG_CONFIG_HOME": "/home/runner/.config",
+                "XDG_RUNTIME_DIR": "/run/user/1001"
+              }
+            },
+            "resolved_dependencies": [
+              {
+                "name": "https://github.com/testifysec/swf",
+                "digest": {
+                  "sha1": "2d7abd0bb5920fd5aaa5d4963d8ab9e674722074"
+                }
+              },
+              {
+                "name": ".github/workflows/pipeline.yml",
+                "digest": {
+                  "sha256": "52b9cb31f56d92e359823eb6c5c5a306b3c376651fdafece4e60552dce1d8bed"
+                }
+              },
+              {
+                "name": ".git/hooks/applypatch-msg.sample",
+                "digest": {
+                  "sha256": "0223497a0b8b033aa58a3a521b8629869386cf7ab0e2f101963d328aa62193f7"
+                }
+              },
+              {
+                "name": ".git/logs/refs/heads/ossff-demo",
+                "digest": {
+                  "sha256": "5544281ff78fc157960f0c136364e8eb492914ff7112f27ff7022978425944fc"
+                }
+              },
+              {
+                "name": ".git/objects/e3/4c2849fe7ab17d614571832280379a4ec9d867",
+                "digest": {
+                  "sha256": "2e9233f3839071fb1c15dea3eea09a3c17e96e10518b8c013ad80bd23e54f2bc"
+                }
+              },
+              {
+                "name": ".git/objects/e4/d2fe44347a32c0dac167f2590bd4a1aca41b18",
+                "digest": {
+                  "sha256": "9c0165e716aaf76d5d106914693420ff177a5b7e7a8f1f5b0e4a89ea92adfab5"
+                }
+              },
+              {
+                "name": "Dockerfile",
+                "digest": {
+                  "sha256": "8c81e2a00f2b6c19ae6a4bf7e337af51d9cc744afdd54264ecc207ee3a83b62f"
+                }
+              },
+              {
+                "name": ".git/objects/a5/aa07a3390431aa5533f08a01b48d9349e6d81d",
+                "digest": {
+                  "sha256": "a31564ebb26c59f42ac904cfc61317d9995d886f4f4b4329a28eda8c3a99a45e"
+                }
+              },
+              {
+                "name": ".git/objects/d6/9c31c5a526882fbd2ebefbd4fa37e87ccd42d0",
+                "digest": {
+                  "sha256": "869416ad9ff669eb5ba742a74515844698798db7d257ebc123fa59b3da78a34c"
+                }
+              },
+              {
+                "name": "pr-policy.json",
+                "digest": {
+                  "sha256": "520ceaea741e897044e46327924f8825aa5fcf4027ffd7c809fe2bfed588942c"
+                }
+              },
+              {
+                "name": "swfpublic.pem",
+                "digest": {
+                  "sha256": "6516d0812cb5a0d01f7f014f88e04c5d4c2d89a64e788a12950ba950fb43ef45"
+                }
+              },
+              {
+                "name": ".git/objects/19/b89b34d39e74f6d0aab2ca088b7f72f13da9ec",
+                "digest": {
+                  "sha256": "8818b4001036d1da3f11df0a8537f0c7980459f72203b404d1994eb030b0ab2c"
+                }
+              },
+              {
+                "name": ".git/objects/c0/1c1e085561fd32217f3ca833fe198fd556c99b",
+                "digest": {
+                  "sha256": "becd9862d48c4f4d59cfa081b2fa769050d202d8d1696ff34d11707ad3a90ee8"
+                }
+              },
+              {
+                "name": ".git/refs/remotes/origin/ossff-demo",
+                "digest": {
+                  "sha256": "5cf36192c4deaaf3f70315e8596a327410b80a50721800bb5132cddafe88215a"
+                }
+              },
+              {
+                "name": "README.md",
+                "digest": {
+                  "sha256": "ef69fc447ea81863b3338542ff2bc4777b48b2b833678f7403f2fc698e992f60"
+                }
+              },
+              {
+                "name": "policy.json",
+                "digest": {
+                  "sha256": "a9b9cf48daddb3a8b2ea8c85d8eaf30d388efc9ffaccea1cfdc1b6d8e576d1a0"
+                }
+              },
+              {
+                "name": ".git/hooks/pre-rebase.sample",
+                "digest": {
+                  "sha256": "4febce867790052338076f4e66cc47efb14879d18097d1d61c8261859eaaa7b3"
+                }
+              },
+              {
+                "name": ".git/objects/a2/5ce89f3dd9ae7d313024cd5eb4c56054da596e",
+                "digest": {
+                  "sha256": "70e39e0c54052c5d94513297d6658d64626769b6a58631225ca6068b7a1baaba"
+                }
+              },
+              {
+                "name": "go.sum",
+                "digest": {
+                  "sha256": "5aad055ee2fa47935a04b1fabe563211ae6b9f213001cac8a58dea2a5fe35cdc"
+                }
+              },
+              {
+                "name": "policy-signed.json",
+                "digest": {
+                  "sha256": "d1474fc27953fd290dc2392ca8b3b57fa45d2e1646d598d4931830e5ae5f1d07"
+                }
+              },
+              {
+                "name": ".git/hooks/fsmonitor-watchman.sample",
+                "digest": {
+                  "sha256": "e0549964e93897b519bd8e333c037e51fff0f88ba13e086a331592bf801fa1d0"
+                }
+              },
+              {
+                "name": ".git/objects/26/1eeb9e9f8b2b4b0d119366dda99c6fd7d35c64",
+                "digest": {
+                  "sha256": "72e9c36b6c0617f163a591a78ed16af1d620883d2062410f9a59767e8494174f"
+                }
+              },
+              {
+                "name": ".git/objects/7e/1c04dff4de18caf4ab2148822fde20eb1fdc88",
+                "digest": {
+                  "sha256": "d3f47b5dc9e891a748747704ac84378838f639e6baa078b0709f9a42f3596156"
+                }
+              },
+              {
+                "name": ".git/objects/89/5737a7f19eaeee4170ecba182be24e5ef73a4f",
+                "digest": {
+                  "sha256": "6fab009853901973b791089d14b7a794b31298b26b4e7f1dbd1226de84196e9d"
+                }
+              },
+              {
+                "name": ".git/objects/9e/a8a633fb3bb77ab358da0bfc5550be630b035f",
+                "digest": {
+                  "sha256": "b0ff9d9a7d8223112dc36dd5aa46f37fd325f2e9e02970e36d74caa90566491b"
+                }
+              },
+              {
+                "name": "pr-policy-signed.json",
+                "digest": {
+                  "sha256": "fe1a42b48e7dc2ca436cf16aa79f59a5415880d05b3c9f3a49becfd8c93ec2f8"
+                }
+              },
+              {
+                "name": ".git/config",
+                "digest": {
+                  "sha256": "5a6466870789b4658fffa4b8037bfcc9d3191fe4a09caac18bd4df3cf26d0376"
+                }
+              },
+              {
+                "name": ".git/hooks/commit-msg.sample",
+                "digest": {
+                  "sha256": "1f74d5e9292979b573ebd59741d46cb93ff391acdd083d340b94370753d92437"
+                }
+              },
+              {
+                "name": ".git/hooks/prepare-commit-msg.sample",
+                "digest": {
+                  "sha256": "e9ddcaa4189fddd25ed97fc8c789eca7b6ca16390b2392ae3276f0c8e1aa4619"
+                }
+              },
+              {
+                "name": ".git/objects/2d/7abd0bb5920fd5aaa5d4963d8ab9e674722074",
+                "digest": {
+                  "sha256": "0f308979980a903da09692884b0445f0fae1d70be4b6d8fd9af9d410cc2ee779"
+                }
+              },
+              {
+                "name": ".git/refs/heads/ossff-demo",
+                "digest": {
+                  "sha256": "5cf36192c4deaaf3f70315e8596a327410b80a50721800bb5132cddafe88215a"
+                }
+              },
+              {
+                "name": ".git/hooks/post-update.sample",
+                "digest": {
+                  "sha256": "81765af2daef323061dcbc5e61fc16481cb74b3bac9ad8a174b186523586f6c5"
+                }
+              },
+              {
+                "name": ".git/hooks/pre-receive.sample",
+                "digest": {
+                  "sha256": "a4c3d2b9c7bb3fd8d1441c31bd4ee71a595d66b44fcf49ddb310252320169989"
+                }
+              },
+              {
+                "name": ".git/objects/6e/66712fdfbc39e7d37b6b438c936469ef5034aa",
+                "digest": {
+                  "sha256": "5c3c7d79476a3bb8f34a3acae0bd7011d8dff1787723de2451070e876a4baa6d"
+                }
+              },
+              {
+                "name": "policy.rego",
+                "digest": {
+                  "sha256": "181287ccf6c041e03fd21e9c00ff29d8f70e8e31c26f393bcaf6b60b5b775ac2"
+                }
+              },
+              {
+                "name": ".git/HEAD",
+                "digest": {
+                  "sha256": "f5cd81777313bb739f1ab863e0ed45e7c7992885a9182c0855dc6534a40d6ddd"
+                }
+              },
+              {
+                "name": ".git/hooks/pre-applypatch.sample",
+                "digest": {
+                  "sha256": "e15c5b469ea3e0a695bea6f2c82bcf8e62821074939ddd85b77e0007ff165475"
+                }
+              },
+              {
+                "name": ".git/logs/HEAD",
+                "digest": {
+                  "sha256": "c18978b70fe1cd415b8f0a63361d5050b798a230f6c8c5aef0f2973bcb25f827"
+                }
+              },
+              {
+                "name": ".git/objects/ec/9839a6e4015dace85fbe8d3ef6f285028c0a5f",
+                "digest": {
+                  "sha256": "63e517b67be6720ecb0a3eaab02bbbc6c5cb77156d24378fb5ccd0afd9091247"
+                }
+              },
+              {
+                "name": "main.go",
+                "digest": {
+                  "sha256": "60aeb5c9f1edf7f28033f0daafa6dbe053c9ac1012ea11a1f5ca2cbb87a4c308"
+                }
+              },
+              {
+                "name": ".git/hooks/pre-commit.sample",
+                "digest": {
+                  "sha256": "57185b7b9f05239d7ab52db045f5b89eb31348d7b2177eab214f5eb872e1971b"
+                }
+              },
+              {
+                "name": ".git/hooks/update.sample",
+                "digest": {
+                  "sha256": "8d5f2fa83e103cf08b57eaa67521df9194f45cbdbcb37da52ad586097a14d106"
+                }
+              },
+              {
+                "name": "LICENSE",
+                "digest": {
+                  "sha256": "b79aa48ff5bd91c87062c280d1cb80c7f13608e0faf8f3473eb6534c6e3f5414"
+                }
+              },
+              {
+                "name": "Makefile",
+                "digest": {
+                  "sha256": "6b9477762d8b2595ab2e4f0a59c258d422f9f11a14052c157c37167a3de3b9aa"
+                }
+              },
+              {
+                "name": "witness",
+                "digest": {
+                  "sha256": "7e309018bcb34d3f8ca6c7bc8e1ca9545583c1d0accae12d3eedcb0c8899ade1"
+                }
+              },
+              {
+                "name": ".git/FETCH_HEAD",
+                "digest": {
+                  "sha256": "4b185e22b8a9827ac6ff147c01e11a9de028743329eba1ae4fa5366a0405874a"
+                }
+              },
+              {
+                "name": ".git/info/exclude",
+                "digest": {
+                  "sha256": "6671fe83b7a07c8932ee89164d1f2793b2318058eb8b98dc5c06ee0a5a3b0ec1"
+                }
+              },
+              {
+                "name": ".git/objects/24/7d2dd54ff9763b1236422f96ab2c98c936b24c",
+                "digest": {
+                  "sha256": "aa765dac81a80cb5e567bf6ce9825463d908b92e64c6ed7f447d929f5cd728a0"
+                }
+              },
+              {
+                "name": ".git/shallow",
+                "digest": {
+                  "sha256": "5cf36192c4deaaf3f70315e8596a327410b80a50721800bb5132cddafe88215a"
+                }
+              },
+              {
+                "name": ".github/dependabot.yml",
+                "digest": {
+                  "sha256": "a69cb3493f5830285607bae1bebd52a50f0b03dbe6f6a23f8376007fcaaf2499"
+                }
+              },
+              {
+                "name": "main_test.go",
+                "digest": {
+                  "sha256": "826f215de4de661ba24545430a2ede1c829830567e4d20f40fc0e613b3c76e83"
+                }
+              },
+              {
+                "name": ".git/hooks/pre-push.sample",
+                "digest": {
+                  "sha256": "ecce9c7e04d3f5dd9d8ada81753dd1d549a9634b26770042b58dda00217d086a"
+                }
+              },
+              {
+                "name": ".git/hooks/sendemail-validate.sample",
+                "digest": {
+                  "sha256": "44ebfc923dc5466bc009602f0ecf067b9c65459abfe8868ddc49b78e6ced7a92"
+                }
+              },
+              {
+                "name": ".git/objects/cd/885540dacd0d810116d13918c59b6acf253b3e",
+                "digest": {
+                  "sha256": "3fdaeec6a87b7cd98882cb5e8df2ac49a172915940818af62eada64de045ec7a"
+                }
+              },
+              {
+                "name": ".git/objects/dd/101e65cdee22fe58b4a00875cb81d5491ec362",
+                "digest": {
+                  "sha256": "9f75381a0e066f86306ab6d9370bdd5d6126eb571d8c55c794ef6f7c880b6f27"
+                }
+              },
+              {
+                "name": "go.mod",
+                "digest": {
+                  "sha256": "0ef8a960f5984bb77cc072f30d1836e4b6983a11931dc2ee211a6b175c4ba324"
+                }
+              },
+              {
+                "name": ".git/description",
+                "digest": {
+                  "sha256": "85ab6c163d43a17ea9cf7788308bca1466f1b0a8d1cc92e26e9bf63da4062aee"
+                }
+              },
+              {
+                "name": ".git/index",
+                "digest": {
+                  "sha256": "b9a4604796eaf569c7e484f9a641915766efdea8b059575ee9610f7d3f7ae0bd"
+                }
+              },
+              {
+                "name": ".git/logs/refs/remotes/origin/ossff-demo",
+                "digest": {
+                  "sha256": "548dbab65887b1368fbd08ba25d13db876f4c3651ab394bfacd7a5a83d2139aa"
+                }
+              },
+              {
+                "name": ".git/objects/b7/243e25b256e48478443fc91fab8d3e8d9f1ff3",
+                "digest": {
+                  "sha256": "036f08256fe8c294fd7285f87927361c52992fc227c57732c9623b42becdaa30"
+                }
+              },
+              {
+                "name": ".git/objects/ee/19b94f296fe7c22947ff7fbca1943c0b74b9b5",
+                "digest": {
+                  "sha256": "f37e2b80db5d23dfa0b9566806e3dacdc22b0a0f0afc228590ef37a9fe2e35aa"
+                }
+              },
+              {
+                "name": ".git/hooks/pre-merge-commit.sample",
+                "digest": {
+                  "sha256": "d3825a70337940ebbd0a5c072984e13245920cdf8898bd225c8d27a6dfc9cb53"
+                }
+              },
+              {
+                "name": ".git/objects/a4/a0f9412f3397b19bc3041779312e7018781b4b",
+                "digest": {
+                  "sha256": "aa6af0e3f0ff5a7cf58b1fd5f2aecaead8f1ef866f537d4b5cedc4618a2e7969"
+                }
+              },
+              {
+                "name": ".gitignore",
+                "digest": {
+                  "sha256": "67757a4c2cceb21cb7e4f652bd14048e1c0c1cd9d40365312886e48ddf9b4264"
+                }
+              },
+              {
+                "name": ".git/hooks/push-to-checkout.sample",
+                "digest": {
+                  "sha256": "a53d0741798b287c6dd7afa64aee473f305e65d3f49463bb9d7408ec3b12bf5f"
+                }
+              },
+              {
+                "name": ".git/objects/76/ccaba52069677c0cd94f478ec57816058df80e",
+                "digest": {
+                  "sha256": "4338b911baf69733b8af0115ea008a235b8720e8523e0e54976b22daddefcc28"
+                }
+              }
+            ]
+          },
+          "run_details": {
+            "builder": {
+              "id": "https://witness.dev/witness-github-action-builder@v0.1"
+            },
+            "metadata": {
+              "invocation_id": "https://github.com/testifysec/swf/actions/runs/11133726521",
+              "started_on": {
+                "seconds": 1727818057,
+                "nanos": 620090451
+              },
+              "finished_on": {
+                "seconds": 1727818077,
+                "nanos": 222847096
+              }
+            }
+          }
+        },
+        "starttime": "2024-10-01T21:27:57.25877623Z",
+        "endtime": "2024-10-01T21:27:57.258932071Z"
+      },
+      {
+        "type": "https://witness.dev/attestations/oci/v0.1",
+        "attestation": {
+          "tardigest": {
+            "sha256": "eebfc8dfcf1070235208bc38f64526117d34821ee4a963d99808616d21ec8414"
+          },
+          "manifest": [
+            {
+              "Config": "blobs/sha256/e923c3663af679b10113fd986f29bebd61928371d15c7e60e0c06e6a321a555e",
+              "RepoTags": [
+                "ghcr.io/testifysec/swf/software:ossff-demo"
+              ],
+              "Layers": [
+                "blobs/sha256/b026e15595e8b43ac1b2c75a93acf2abc3c40a6f520ffb98e54edc4b1e7b9dd8",
+                "blobs/sha256/0d1267d99bf1c5b206f7dc23f9e286dfedafc846fc72df5a9aac8bc61e1d8592"
+              ]
+            }
+          ],
+          "imagetags": [
+            "ghcr.io/testifysec/swf/software:ossff-demo"
+          ],
+          "diffids": [
+            {
+              "sha256": "fb4beb660c37ce772015be2f275a5144c0018860c75a26fa26c7dac30f593b5c"
+            },
+            {
+              "sha256": "1c1cdd882e5e738c558650d7ec35254f227fd7a51371d521e76307aeeb018d95"
+            }
+          ],
+          "imageid": {
+            "sha256": "e923c3663af679b10113fd986f29bebd61928371d15c7e60e0c06e6a321a555e"
+          },
+          "manifestraw": "W3siQ29uZmlnIjoiYmxvYnMvc2hhMjU2L2U5MjNjMzY2M2FmNjc5YjEwMTEzZmQ5ODZmMjliZWJkNjE5MjgzNzFkMTVjN2U2MGUwYzA2ZTZhMzIxYTU1NWUiLCJSZXBvVGFncyI6WyJnaGNyLmlvL3Rlc3RpZnlzZWMvc3dmL3NvZnR3YXJlOm9zc2ZmLWRlbW8iXSwiTGF5ZXJzIjpbImJsb2JzL3NoYTI1Ni9iMDI2ZTE1NTk1ZThiNDNhYzFiMmM3NWE5M2FjZjJhYmMzYzQwYTZmNTIwZmZiOThlNTRlZGM0YjFlN2I5ZGQ4IiwiYmxvYnMvc2hhMjU2LzBkMTI2N2Q5OWJmMWM1YjIwNmY3ZGMyM2Y5ZTI4NmRmZWRhZmM4NDZmYzcyZGY1YTlhYWM4YmM2MWUxZDg1OTIiXX1d",
+          "manifestdigest": {
+            "sha256": "61d5b3b3654d8e9561a8c531a06ca855c935395e1568ce8c0272d32361758266"
+          }
+        },
+        "starttime": "2024-10-01T21:27:57.258884384Z",
+        "endtime": "2024-10-01T21:27:57.294539187Z"
+      }
+    ]
+  }
+}

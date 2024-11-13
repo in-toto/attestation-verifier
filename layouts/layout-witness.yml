@@ -1,0 +1,43 @@
+expires: "2100-10-10T12:23:22Z"
+functionaries:
+  fe1c6281c5ff13e35286cc67e5a1fb3e6575b840a6c39ca4267d3805eb17288a:
+    keyType: "ed25519"
+    scheme: "ed25519"
+    keyIDHashAlgorithms:
+      - "sha256"
+      - "sha512"
+    keyVal:
+      public: "7345b83c121ea0d9ffc3b38d69958718b8435e8cb0552f889d695586693e1b89"
+    keyID: "fe1c6281c5ff13e35286cc67e5a1fb3e6575b840a6c39ca4267d3805eb17288a"
+steps:
+  - name: "build"
+    expectedPredicateType: "https://witness.testifysec.com/attestation-collection/v0.1"
+    functionaries:
+      - "fe1c6281c5ff13e35286cc67e5a1fb3e6575b840a6c39ca4267d3805eb17288a"
+    expectedMaterials:
+      - "ALLOW .git/*"
+      - "ALLOW .github/*"
+      - "ALLOW Makefile"
+      - "ALLOW *.go"
+      - "ALLOW *.json"
+      - "ALLOW go.*"
+      - "ALLOW LICENSE"
+      - "ALLOW Dockerfile"
+      - "ALLOW .gitignore"
+      - "ALLOW README.md"
+      - "ALLOW *.pem"
+      - "DISALLOW *"
+    expectedProducts:
+      - "ALLOW *"
+    expectedAttestors:
+      - attestorType: "https://witness.dev/attestations/git/v0.1"
+        expectedAttributes:
+          - rule: "attestation.author == 'John Kjell'"
+      - attestorType: "https://witness.dev/attestations/github/v0.1"
+        expectedAttributes:
+          - rule: "attestation.jwt.claims.actor == 'jkjell'"
+          - rule: "attestation.jwt.claims.repository == 'testifysec/swf'"
+      - attestorType: "https://witness.dev/attestations/command-run/v0.1"
+        expectedAttributes:
+          - rule: "attestation.cmd == ['/bin/sh', '-c', 'go build -o bin/software main.go']"
+          - rule: "attestation.exitcode == 0"
