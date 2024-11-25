@@ -3,7 +3,7 @@ module github.com/in-toto/attestation-verifier
 go 1.22
 
 require (
-	github.com/google/cel-go v0.22.0
+	github.com/google/cel-go v0.22.1
 	github.com/in-toto/attestation v1.1.0
 	github.com/in-toto/in-toto-golang v0.9.0
 	github.com/secure-systems-lab/go-securesystemslib v0.8.0
