@@ -3,7 +3,7 @@ module github.com/in-toto/attestation-verifier
 go 1.22
 
 require (
-	github.com/google/cel-go v0.22.1
+	github.com/google/cel-go v0.23.0
 	github.com/in-toto/attestation v1.1.1
 	github.com/in-toto/in-toto-golang v0.9.0
 	github.com/secure-systems-lab/go-securesystemslib v0.9.0
@@ -14,7 +14,7 @@ require (
 )
 
 require (
-	cel.dev/expr v0.18.0 // indirect
+	cel.dev/expr v0.19.1 // indirect
 	github.com/antlr4-go/antlr/v4 v4.13.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/shibumi/go-pathspec v1.3.0 // indirect
