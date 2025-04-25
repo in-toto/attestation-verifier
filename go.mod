@@ -1,7 +1,8 @@
 module github.com/in-toto/attestation-verifier
 
-go 1.22
-toolchain go1.24.1
+go 1.22.0
+
+toolchain go1.24.2
 
 require (
 	github.com/google/cel-go v0.25.0
