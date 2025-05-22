@@ -1,5 +1,7 @@
 # in-toto/attestation-verifier
 
+[![gittuf Verification](https://github.com/in-toto/attestation-verifier/actions/workflows/gittuf-verify.yml/badge.svg)](https://github.com/in-toto/attestation-verifier/actions/workflows/gittuf-verify.yml)
+
 This is a **prototype** of verification capabilities introduced in in-toto
 enhancements [10](https://github.com/in-toto/ITE/blob/master/ITE/10/README.adoc)
 and [11](https://github.com/in-toto/ITE/pull/50). This verifier must not be used
