@@ -3,9 +3,12 @@ package main
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 	"io"
 	"math/rand"
+	"os"
 
 	"github.com/in-toto/attestation-verifier/slsa-e2e-rfp/probes"
 	att "github.com/in-toto/attestation/go/v1"
@@ -24,6 +27,21 @@ func attestWithProbe(ctx context.Context, prng io.Reader, fileStore *probes.File
 		return err
 	}
 	return probe.Attest(ctx, stepName, predicateType, predicate, subject)
+}
+
+func sha256Hash(filePath string) (string, error) {
+	f, err := os.Open(filePath)
+	if err != nil {
+		return "", err
+	}
+	defer f.Close()
+
+	h := sha256.New()
+	if _, err := io.Copy(h, f); err != nil {
+		return "", err
+	}
+
+	return hex.EncodeToString(h.Sum(nil)), nil
 }
 
 // TODO:
