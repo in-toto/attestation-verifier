@@ -1,0 +1,75 @@
+expires: "2025-12-31T23:59:59Z"
+functionaries:
+  # source
+  937101f8dcc7be06fd1f8c35dbbe9855d784c690e9598a5f11c9b70a0bf46f1f:
+    keyType: "ed25519"
+    scheme: "ed25519"
+    keyIDHashAlgorithms:
+      - "sha256"
+      - "sha512"
+    keyVal:
+      public: "cfec494a7cc842d8340f2c33be5ed55334cba63e5515a8c0f30677211cfaced4"
+    keyID: "937101f8dcc7be06fd1f8c35dbbe9855d784c690e9598a5f11c9b70a0bf46f1f"
+  # build
+  8c249ff34cddc2181a14e679577a2acf38216dc01b95be2c218a9faa79c4e2d0:
+    keyType: "ed25519"
+    scheme: "ed25519"
+    keyIDHashAlgorithms:
+      - "sha256"
+      - "sha512"
+    keyVal:
+      public: "46a4405f239de13e9db05bdd706ccb329c0b19a9e2880c9e52bfe196641cb876"
+    keyID: "8c249ff34cddc2181a14e679577a2acf38216dc01b95be2c218a9faa79c4e2d0"
+  # release
+  0973a4a0155ab13d35e3cfdd3476eaba91044a8693c5aa5e017d97313bd9dc84:
+    keyType: "ed25519"
+    scheme: "ed25519"
+    keyIDHashAlgorithms:
+      - "sha256"
+      - "sha512"
+    keyVal:
+      public: "7da885ef5c5cc1255a327fa688474ec9baeb25cfcbb47930361da73e52875cd1"
+    keyID: "0973a4a0155ab13d35e3cfdd3476eaba91044a8693c5aa5e017d97313bd9dc84"
+steps:
+  - name: "source"
+    expectedMaterials:
+      - "DISALLOW *"
+    expectedProducts:
+      - "CREATE https://github.com/{github_repository}/*"
+      - "DISALLOW *"
+    expectedPredicates:
+      - predicateType: "https://slsa.dev/verification_summary/v1"
+        expectedAttributes:
+          - rule: "predicate.verifier.id == 'https://github.com/gittuf/gittuf'"
+        functionaries:
+          - "937101f8dcc7be06fd1f8c35dbbe9855d784c690e9598a5f11c9b70a0bf46f1f"
+  - name: "build"
+    expectedMaterials:
+      - "MATCH https://github.com/{github_repository}/* IN git+ WITH PRODUCTS FROM source"
+      - "DISALLOW *"
+    expectedProducts:
+      - "CREATE pkg:npm/{package_name}@{package_version}"
+      - "DISALLOW *"
+    expectedPredicates:
+      - predicateType: "https://slsa.dev/provenance/v1"
+        expectedAttributes:
+          - rule: "predicate.buildDefinition.buildType == 'https://slsa-framework.github.io/github-actions-buildtypes/workflow/v1'"
+          #- rule: "predicate.invocation.environment.GITHUB_REF == '{github_ref}'"
+          #- rule: "predicate.invocation.environment.GITHUB_REPOSITORY == '{github_repository}'"
+          #- rule: "predicate.invocation.environment.GITHUB_REPOSITORY_ID == '{github_repository_id}'"
+          #- rule: "predicate.invocation.environment.GITHUB_REPOSITORY_OWNER_ID == '{github_repository_owner_id}'"
+          #- rule: "predicate.invocation.environment.GITHUB_WORKFLOW_REF == '{github_workflow_ref}'"
+        functionaries:
+          - "8c249ff34cddc2181a14e679577a2acf38216dc01b95be2c218a9faa79c4e2d0"
+  - name: "release"
+    expectedMaterials:
+      - "MATCH * WITH products FROM build"
+      - "DISALLOW *"
+    expectedPredicates:
+      - predicateType: "https://in-toto.io/attestation/release/v0.1"
+        expectedAttributes:
+          #- rule: "predicate.name == '{package_name}'"
+          #- rule: "predicate.version == '{package_version}'"
+          #- rule: "predicate.registry == 'https://registry.npmjs.org'"
+        functionaries:
+          - "0973a4a0155ab13d35e3cfdd3476eaba91044a8693c5aa5e017d97313bd9dc84"

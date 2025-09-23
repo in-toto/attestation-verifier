@@ -36,7 +36,7 @@ func build(ctx context.Context, prng io.Reader, fileStore *probes.FileStore) err
 
 	resolvedDependencies := []*att.ResourceDescriptor{
 		{
-			Uri: "git+https://github.com/sigstore/sigstore-js@refs/heads/main",
+			Uri: "git+https://github.com/sigstore/sigstore-js/commit/3a57a741bfb9f7c3bca69b63e170fc28e9432e69",
 			Digest: map[string]string{
 				"gitCommit": "3a57a741bfb9f7c3bca69b63e170fc28e9432e69",
 			},

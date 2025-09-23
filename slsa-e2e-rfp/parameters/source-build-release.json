@@ -1,0 +1,11 @@
+{
+    "package_name": "sigstore",
+    "package_version": "3.0.0",
+    "github_ref": "refs/heads/main",
+    "github_repository": "sigstore/sigstore-js",
+    "github_repository_id": "495574555",
+    "github_repository_owner_id": "71096353",
+    "github_workflow_ref": "{github_repository}/{entry_point}@{github_ref}",
+    "config_source": "git+https://github.com/{github_repository}@{github_ref}",
+    "entry_point": ".github/workflows/release.yml"
+}

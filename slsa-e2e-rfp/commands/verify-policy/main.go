@@ -16,7 +16,10 @@ import (
 )
 
 const (
-	attestationsDir  = "slsa-e2e-rfp/attestations"
+	attestationsDir = "slsa-e2e-rfp/attestations"
+	parametersPath  = "slsa-e2e-rfp/parameters/source-build-release.json"
+	policyPath      = "slsa-e2e-rfp/policies/source-build-release.yaml"
+	// Fixed seed for reproducibility of attestation signing keys.
 	prngSeed         = 42
 	vsaPredicateType = "https://slsa.dev/verification_summary/v1"
 )
@@ -65,6 +68,12 @@ func main() {
 
 	fmt.Println("Generating the Release Attestation...")
 	if err := release(ctx, prng, fileStore); err != nil {
+		panic(err)
+	}
+	fmt.Print("...done.\n\n")
+
+	fmt.Println("Verifying attestations against policy...")
+	if _, err := verify(policyPath, attestationsDir, parametersPath); err != nil {
 		panic(err)
 	}
 	fmt.Print("...done.\n\n")

@@ -15,13 +15,13 @@ import (
 func source(ctx context.Context, prng io.Reader, fileStore *probes.FileStore) error {
 	predicate := &vsa.VerificationSummary{
 		Verifier: &vsa.VerificationSummary_Verifier{
-			Id: "https://example.com/source_verifier",
+			Id: "https://github.com/gittuf/gittuf",
 		},
 		TimeVerified: &timestamppb.Timestamp{
 			Seconds: 482196050,
 			Nanos:   520000000,
 		},
-		ResourceUri: "git+https://github.com/foo/hello-world",
+		ResourceUri: "git+https://github.com/sigstore/sigstore-js",
 		Policy: &vsa.VerificationSummary_Policy{
 			Uri: "https://example.com/slsa_source.policy",
 		},
@@ -36,9 +36,9 @@ func source(ctx context.Context, prng io.Reader, fileStore *probes.FileStore) er
 		return err
 	}
 	subject := &att.ResourceDescriptor{
-		Uri: "https://github.com/foo/hello-world/commit/9a04d1ee393b5be2773b1ce204f61fe0fd02366a",
+		Uri: "https://github.com/sigstore/sigstore-js/commit/3a57a741bfb9f7c3bca69b63e170fc28e9432e69",
 		Digest: map[string]string{
-			"gitCommit": "9a04d1ee393b5be2773b1ce204f61fe0fd02366a",
+			"gitCommit": "3a57a741bfb9f7c3bca69b63e170fc28e9432e69",
 		},
 		Annotations: annnotations,
 	}
