@@ -47,8 +47,6 @@ func sha256Hash(filePath string) (string, error) {
 	return hex.EncodeToString(h.Sum(nil)), nil
 }
 
-// TODO:
-// - Attestations are not all linked right now (e.g., build has nothing to do with source).
 func main() {
 	ctx := context.Background()
 	prng := rand.New(rand.NewSource(prngSeed))
@@ -67,14 +65,21 @@ func main() {
 	fmt.Print("...done.\n\n")
 
 	fmt.Println("Generating the Release Attestation...")
-	if err := release(ctx, prng, fileStore); err != nil {
+	subject, err := release(ctx, prng, fileStore)
+	if err != nil {
 		panic(err)
 	}
 	fmt.Print("...done.\n\n")
 
-	fmt.Println("Verifying attestations against policy...")
-	if _, err := verify(policyPath, attestationsDir, parametersPath); err != nil {
+	fmt.Println("Verifying Attestations against Policy...")
+	// FIXME: Get policy, attestations, and parameters from user instead of harcoding them.
+	hashes, err := verify(policyPath, attestationsDir, parametersPath)
+	fmt.Print("...done.\n\n")
+
+	fmt.Println("Generating the Policy VSA...")
+	err = summarize(ctx, prng, fileStore, policyPath, hashes, subject, err)
+	if err != nil {
 		panic(err)
 	}
-	fmt.Print("...done.\n\n")
+	fmt.Print("...done.\n")
 }

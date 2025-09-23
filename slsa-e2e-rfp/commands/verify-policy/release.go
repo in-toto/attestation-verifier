@@ -9,7 +9,7 @@ import (
 	att "github.com/in-toto/attestation/go/v1"
 )
 
-func release(ctx context.Context, prng io.Reader, fileStore *probes.FileStore) error {
+func release(ctx context.Context, prng io.Reader, fileStore *probes.FileStore) (*att.ResourceDescriptor, error) {
 	predicateType := "https://in-toto.io/attestation/release/v0.1"
 	releaseID := "1234567890"
 	predicate := &rel.Release{
@@ -26,5 +26,9 @@ func release(ctx context.Context, prng io.Reader, fileStore *probes.FileStore) e
 		},
 	}
 
-	return attestWithProbe(ctx, prng, fileStore, "release", predicateType, predicate, subject)
+	err := attestWithProbe(ctx, prng, fileStore, "release", predicateType, predicate, subject)
+	if err != nil {
+		return nil, err
+	}
+	return subject, nil
 }

@@ -49,5 +49,5 @@ func summarize(ctx context.Context, prng io.Reader, fileStore *probes.FileStore,
 		VerifiedLevels:     []string{"SLSA_BUILD_LEVEL_3"},
 	}
 
-	return attestWithProbe(ctx, prng, fileStore, "release", vsaPredicateType, predicate, subject)
+	return attestWithProbe(ctx, prng, fileStore, "policy", vsaPredicateType, predicate, subject)
 }
