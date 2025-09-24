@@ -54,7 +54,7 @@ func newEd25519SSLibKey(rng io.Reader) (*signerverifier.SSLibKey, error) {
 		return nil, err
 	}
 	key.KeyID = keyID
-	fmt.Println("Key ID:", keyID, "Public Key:", key.KeyVal.Public)
+	fmt.Println("Key ID:", keyID, "/", "Public Key:", key.KeyVal.Public)
 
 	return key, nil
 }

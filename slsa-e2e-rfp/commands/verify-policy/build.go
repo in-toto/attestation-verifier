@@ -66,9 +66,10 @@ func build(ctx context.Context, prng io.Reader, fileStore *probes.FileStore) err
 	}
 
 	subject := &att.ResourceDescriptor{
-		Name: "pkg:npm/sigstore@3.0.0",
+		Name: "sigstore-3.0.0.tgz",
+		// TODO: Actually, this raises the question: should MATCH compare URIs for equality, too?
 		Digest: map[string]string{
-			"sha512": "3c73227e187710de25a0c7070b3ea5deffe5bb3813df36bef5ff2cb9b1a078c3636c98f31f8223fd8a17dc6beefa46a8b894489557531c70911000d87fe66d78",
+			"sha2-512": "3c73227e187710de25a0c7070b3ea5deffe5bb3813df36bef5ff2cb9b1a078c3636c98f31f8223fd8a17dc6beefa46a8b894489557531c70911000d87fe66d78",
 		},
 	}
 

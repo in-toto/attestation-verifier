@@ -1,7 +1,10 @@
 package main
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -9,6 +12,21 @@ import (
 	"github.com/in-toto/attestation-verifier/verifier"
 	"github.com/secure-systems-lab/go-securesystemslib/dsse"
 )
+
+func sha256Hash(filePath string) (string, error) {
+	f, err := os.Open(filePath)
+	if err != nil {
+		return "", err
+	}
+	defer f.Close()
+
+	h := sha256.New()
+	if _, err := io.Copy(h, f); err != nil {
+		return "", err
+	}
+
+	return hex.EncodeToString(h.Sum(nil)), nil
+}
 
 func verify(layoutPath, attestationsDir, parametersPath string) (map[string]string, error) {
 	hashes := make(map[string]string)
@@ -25,14 +43,18 @@ func verify(layoutPath, attestationsDir, parametersPath string) (map[string]stri
 	}
 	hashes[layoutPath] = layoutPathHash
 
-	dirEntries, err := os.ReadDir(attestationsDir)
+	attestationsDirEntries, err := os.ReadDir(attestationsDir)
 	if err != nil {
 		return nil, err
 	}
 
 	attestations := map[string]*dsse.Envelope{}
-	for _, dirEntry := range dirEntries {
-		filename := dirEntry.Name()
+	for _, attestationDirEntry := range attestationsDirEntries {
+		filename := attestationDirEntry.Name()
+		// FIXME: Terrible hack to skip the policy VSA, but whatever, it works for now.
+		if strings.HasPrefix(filename, "policy.") && strings.HasSuffix(filename, ".json") {
+			continue
+		}
 		filePath := filepath.Join(attestationsDir, filename)
 
 		envelopeBytes, err := os.ReadFile(filePath)

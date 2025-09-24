@@ -41,6 +41,7 @@ steps:
       - predicateType: "https://slsa.dev/verification_summary/v1"
         expectedAttributes:
           - rule: "predicate.verifier.id == 'https://github.com/gittuf/gittuf'"
+          # FIXME: Check that the Source VSA was verified not too long ago in the past.
         functionaries:
           - "937101f8dcc7be06fd1f8c35dbbe9855d784c690e9598a5f11c9b70a0bf46f1f"
   - name: "build"
@@ -48,12 +49,14 @@ steps:
       - "MATCH https://github.com/{github_repository}/* IN git+ WITH PRODUCTS FROM source"
       - "DISALLOW *"
     expectedProducts:
-      - "CREATE pkg:npm/{package_name}@{package_version}"
+      - "CREATE {package_name}-{package_version}.tgz"
       - "DISALLOW *"
     expectedPredicates:
       - predicateType: "https://slsa.dev/provenance/v1"
         expectedAttributes:
           - rule: "predicate.buildDefinition.buildType == 'https://slsa-framework.github.io/github-actions-buildtypes/workflow/v1'"
+          # FIXME: Update these predicate fields to use v1 instead v0.2:
+          # https://slsa.dev/spec/v1.1/provenance#migrating-from-02
           #- rule: "predicate.invocation.environment.GITHUB_REF == '{github_ref}'"
           #- rule: "predicate.invocation.environment.GITHUB_REPOSITORY == '{github_repository}'"
           #- rule: "predicate.invocation.environment.GITHUB_REPOSITORY_ID == '{github_repository_id}'"
@@ -63,7 +66,7 @@ steps:
           - "8c249ff34cddc2181a14e679577a2acf38216dc01b95be2c218a9faa79c4e2d0"
   - name: "release"
     expectedMaterials:
-      - "MATCH * WITH products FROM build"
+      - "MATCH * WITH PRODUCTS FROM build"
       - "DISALLOW *"
     expectedPredicates:
       - predicateType: "https://in-toto.io/attestation/release/v0.1"

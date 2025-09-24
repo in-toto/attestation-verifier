@@ -21,8 +21,8 @@ func summarize(ctx context.Context, prng io.Reader, fileStore *probes.FileStore,
 
 	inputAttestations := []*vsa.VerificationSummary_InputAttestation{}
 	for filename, hash := range hashes {
-		// FIXME: Terrible hack, but at least the hashes are real.
-		if filename == layoutPath || strings.Contains(filename, "summarize.") {
+		// FIXME: Terrible hack to skip adding parameters and policies as attestations, but whatever, it works.
+		if strings.Contains(filename, "/parameters/") || strings.Contains(filename, "/policies/") {
 			continue
 		}
 		inputAttestations = append(inputAttestations, &vsa.VerificationSummary_InputAttestation{
@@ -38,6 +38,7 @@ func summarize(ctx context.Context, prng io.Reader, fileStore *probes.FileStore,
 			Id: "https://github.com/in-toto/attestation-verifier",
 		},
 		TimeVerified: timestamppb.Now(),
+		// FIXME(trishankkarthik): Add the parameters here under policy.
 		Policy: &vsa.VerificationSummary_Policy{
 			Uri: layoutPath,
 			Digest: map[string]string{
@@ -49,5 +50,6 @@ func summarize(ctx context.Context, prng io.Reader, fileStore *probes.FileStore,
 		VerifiedLevels:     []string{"SLSA_BUILD_LEVEL_3"},
 	}
 
+	// FIXME(trishankkarthik): Write the pubkey to disk also so we can verify the Policy VSA.
 	return attestWithProbe(ctx, prng, fileStore, "policy", vsaPredicateType, predicate, subject)
 }

@@ -271,15 +271,15 @@ func applyMatchRule(rule map[string]string, srcArtifacts map[string]*attestation
 		}
 	}
 
-	// FIXME: What is the logic for tampering with user-given prefixes?
-	/*for _, prefix := range []string{"srcPrefix", "dstPrefix"} {
+	for _, prefix := range []string{"srcPrefix", "dstPrefix"} {
 		if rule[prefix] != "" {
 			rule[prefix] = path.Clean(rule[prefix])
-			if !strings.HasSuffix(rule[prefix], "/") {
+			// FIXME: What is the logic for tampering with user-given prefixes?
+			/*if !strings.HasSuffix(rule[prefix], "/") {
 				rule[prefix] += "/"
-			}
+			}*/
 		}
-	}*/
+	}
 
 	for srcPath := range queue {
 		srcBasePath := strings.TrimPrefix(srcPath, rule["srcPrefix"])
