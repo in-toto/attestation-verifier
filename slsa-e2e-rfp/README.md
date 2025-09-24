@@ -242,8 +242,8 @@ $ find ./slsa-e2e-rfp/attestations -name "*.json" -exec bash -c 'echo "=== {} ==
 ```shell
 $ go run slsa-e2e-rfp/commands/verify-vsa/main.go
 
-Policy VSA verified by key 64b5e39bbf527b383a758f40501005c470df4d5463c3183486da1a04a0cce755
-Artifact hash 3c73227e187710de25a0c7070b3ea5deffe5bb3813df36bef5ff2cb9b1a078c3636c98f31f8223fd8a17dc6beefa46a8b894489557531c70911000d87fe66d78 verified against the Policy VSA subject
-Policy VSA verification PASSED
-Policy VSA is less than a day old
+Policy VSA verified by public key with ID 64b5e39bbf527b383a758f40501005c470df4d5463c3183486da1a04a0cce755
+Artifact name sigstore-3.0.0.tgz and hash 3c73227e187710de25a0c7070b3ea5deffe5bb3813df36bef5ff2cb9b1a078c3636c98f31f8223fd8a17dc6beefa46a8b894489557531c70911000d87fe66d78 is one of the subjects of the Policy VSA
+Policy VSA verification: PASSED
+Policy VSA is timely: less than a day old
 ```

@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 	"time"
 
 	vsa "github.com/in-toto/attestation/go/predicates/vsa/v1"
@@ -25,7 +26,7 @@ import (
 
 const (
 	// FIXME(trishankkarthik): Get these from user instead of hardcoding them.
-	artifact         = "slsa-e2e-rfp/artifacts/sigstore-3.0.0.tgz"
+	artifactPath     = "slsa-e2e-rfp/artifacts/sigstore-3.0.0.tgz"
 	policyVSA        = "slsa-e2e-rfp/attestations/policy.64b5e39b.json"
 	vsaPredicateType = "https://slsa.dev/verification_summary/v1"
 )
@@ -76,7 +77,7 @@ func main() {
 	if len(acceptedKeys) != 1 {
 		panic("expected exactly one accepted key")
 	}
-	fmt.Printf("Policy VSA verified by key %s\n", acceptedKeys[0].KeyID)
+	fmt.Printf("Policy VSA verified by public key with ID %s\n", acceptedKeys[0].KeyID)
 
 	payloadBytes, err := envelope.DecodeB64Payload()
 	if err != nil {
@@ -91,7 +92,7 @@ func main() {
 		panic(fmt.Sprintf("expected predicate type %s, got %s", vsaPredicateType, statement.PredicateType))
 	}
 
-	artifactFile, err := os.Open(artifact)
+	artifactFile, err := os.Open(artifactPath)
 	if err != nil {
 		panic(err)
 	}
@@ -103,17 +104,30 @@ func main() {
 	}
 	artifactHash := hex.EncodeToString(hasher.Sum(nil))
 
+	artifactBase := filepath.Base(artifactPath)
 	found := false
 	for _, subject := range statement.Subject {
-		if subject.Digest["sha2-512"] == artifactHash {
+		// If we have an artifact with the same name, we want the same digest.
+		subjectHash := subject.Digest["sha2-512"]
+		if subject.Name == artifactBase {
+			if subjectHash != artifactHash {
+				panic(fmt.Sprintf("artifact hash mismatch: expected %s, got %s", artifactHash, subject.Digest["sha2-512"]))
+			}
 			found = true
-			break
+		}
+		// And if we have an artifact with the same hash, we want the same name.
+		if subjectHash == artifactHash {
+			if subject.Name != artifactBase {
+				panic(fmt.Sprintf("artifact name mismatch: expected %s, got %s", artifactBase, subject.Name))
+			}
+			found = true
 		}
 	}
+	// So basically, we guarantee there is only one subject with the same name and digest.
 	if !found {
 		panic("artifact hash not found in statement subjects")
 	}
-	fmt.Printf("Artifact hash %s verified against the Policy VSA subject\n", artifactHash)
+	fmt.Println("Artifact name", artifactBase, "and hash", artifactHash, "is one of the subjects of the Policy VSA")
 
 	predicateBytes, err := protojson.Marshal(statement.Predicate)
 	if err != nil {
@@ -126,14 +140,14 @@ func main() {
 	}
 
 	if vsaPredicate.VerificationResult != "PASSED" {
-		panic("VSA verification did not pass")
+		panic("policy vsa verification did not pass: " + vsaPredicate.VerificationResult)
 	}
-	fmt.Println("Policy VSA verification PASSED")
+	fmt.Println("Policy VSA verification: PASSED")
 
 	verificationTime := vsaPredicate.TimeVerified.AsTime()
 	maxAge := 24 * time.Hour
 	if time.Since(verificationTime) > maxAge {
 		panic(fmt.Sprintf("Policy VSA is too old: verified at %s", verificationTime))
 	}
-	fmt.Println("Policy VSA is less than a day old")
+	fmt.Println("Policy VSA is timely: less than a day old")
 }
