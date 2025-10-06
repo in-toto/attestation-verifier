@@ -47,7 +47,10 @@ func summarize(ctx context.Context, prng io.Reader, fileStore *probes.FileStore,
 		},
 		InputAttestations:  inputAttestations,
 		VerificationResult: verificationResult,
-		VerifiedLevels:     []string{"SLSA_BUILD_LEVEL_3"},
+		VerifiedLevels:     []string{
+			"SLSA_SOURCE_LEVEL_3",
+			"SLSA_BUILD_LEVEL_3",
+		},
 	}
 
 	// FIXME(trishankkarthik): Write the pubkey to disk also so we can verify the Policy VSA.
