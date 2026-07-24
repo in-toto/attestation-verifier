@@ -18,6 +18,13 @@ import (
 	"google.golang.org/protobuf/encoding/protojson"
 )
 
+func getArtifactNameOrURI(artifact *attestationv1.ResourceDescriptor) string {
+	if artifact.Name != "" {
+		return artifact.Name
+	}
+	return artifact.Uri
+}
+
 func applyArtifactRules(statement *attestationv1.Statement, materialRules []string, productRules []string, claims map[string]map[AttestationIdentifier]*attestationv1.Statement) error {
 	materialsList, productsList, err := getMaterialsAndProducts(statement)
 	if err != nil {
@@ -27,17 +34,17 @@ func applyArtifactRules(statement *attestationv1.Statement, materialRules []stri
 	materials := map[string]*attestationv1.ResourceDescriptor{}
 	materialsPaths := in_toto.NewSet()
 	for _, artifact := range materialsList {
-		artifact := artifact
-		materials[artifact.Name] = artifact
-		materialsPaths.Add(path.Clean(artifact.Name))
+		name := getArtifactNameOrURI(artifact)
+		materials[name] = artifact
+		materialsPaths.Add(path.Clean(name))
 	}
 
 	products := map[string]*attestationv1.ResourceDescriptor{}
 	productsPaths := in_toto.NewSet()
 	for _, artifact := range productsList {
-		artifact := artifact
-		products[artifact.Name] = artifact
-		productsPaths.Add(path.Clean(artifact.Name))
+		name := getArtifactNameOrURI(artifact)
+		products[name] = artifact
+		productsPaths.Add(path.Clean(name))
 	}
 
 	created := productsPaths.Difference(materialsPaths)
@@ -216,6 +223,10 @@ func getMaterialsAndProducts(statement *attestationv1.Statement) ([]*attestation
 
 		return materials, statement.Subject, nil
 
+	// NOTE: Some might say this should also be the default case behaviour.
+	case "https://slsa.dev/verification_summary/v1":
+		return nil, statement.Subject, nil
+
 	default:
 		return statement.Subject, nil, nil
 	}
@@ -263,9 +274,10 @@ func applyMatchRule(rule map[string]string, srcArtifacts map[string]*attestation
 	for _, prefix := range []string{"srcPrefix", "dstPrefix"} {
 		if rule[prefix] != "" {
 			rule[prefix] = path.Clean(rule[prefix])
-			if !strings.HasSuffix(rule[prefix], "/") {
+			// FIXME: What is the logic for tampering with user-given prefixes?
+			/*if !strings.HasSuffix(rule[prefix], "/") {
 				rule[prefix] += "/"
-			}
+			}*/
 		}
 	}
 
@@ -316,13 +328,13 @@ func getDestinationArtifacts(dstClaims map[AttestationIdentifier]*attestationv1.
 		// FIXME: we're overwriting artifact info without checking if claims agree
 
 		for _, artifact := range materialsList {
-			artifact := artifact
-			materials[artifact.Name] = artifact
+			name := getArtifactNameOrURI(artifact)
+			materials[name] = artifact
 		}
 
 		for _, artifact := range productsList {
-			artifact := artifact
-			products[artifact.Name] = artifact
+			name := getArtifactNameOrURI(artifact)
+			products[name] = artifact
 		}
 	}
 
