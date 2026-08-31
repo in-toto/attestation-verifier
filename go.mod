@@ -7,7 +7,7 @@ require (
 	github.com/in-toto/attestation v1.2.0
 	github.com/in-toto/in-toto-golang v0.11.0
 	github.com/secure-systems-lab/go-securesystemslib v0.11.0
-	github.com/sirupsen/logrus v1.9.4
+	github.com/sirupsen/logrus v1.10.2
 	github.com/spf13/cobra v1.10.2
 	google.golang.org/protobuf v1.36.11
 	gopkg.in/yaml.v3 v3.0.1
@@ -20,7 +20,7 @@ require (
 	github.com/kr/pretty v0.1.0 // indirect
 	github.com/shibumi/go-pathspec v1.3.0 // indirect
 	github.com/spf13/pflag v1.0.10 // indirect
-	go.yaml.in/yaml/v3 v3.0.4 // indirect
+	go.yaml.in/yaml/v3 v3.0.5 // indirect
 	golang.org/x/crypto v0.50.0 // indirect
 	golang.org/x/exp v0.0.0-20240823005443-9b4947da3948 // indirect
 	golang.org/x/sys v0.43.0 // indirect
